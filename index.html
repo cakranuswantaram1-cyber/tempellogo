@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tempel Logo ke PDF</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1E3350">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Logo PDF">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/0.0.0/placeholder.css" rel="stylesheet" onerror="this.remove()">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --navy:#1E3350;
+    --navy-deep:#132437;
+    --gold:#B8912F;
+    --paper:#F3F1EA;
+    --paper-card:#FFFFFF;
+    --ink:#22293A;
+    --ink-soft:#5B6478;
+    --line:#DCD8CC;
+    --good:#2E7D5B;
+    --danger:#B5442E;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    padding:32px 20px 60px;
+  }
+  .wrap{max-width:1040px;margin:0 auto;}
+
+  header{
+    display:flex;
+    align-items:baseline;
+    gap:14px;
+    margin-bottom:6px;
+    flex-wrap:wrap;
+  }
+  header h1{
+    font-family:'Spectral',serif;
+    font-weight:700;
+    font-size:28px;
+    color:var(--navy-deep);
+    margin:0;
+    letter-spacing:0.2px;
+  }
+  header .eyebrow{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:1.6px;
+    text-transform:uppercase;
+    color:var(--gold);
+    background:rgba(184,145,47,0.12);
+    padding:4px 9px;
+    border-radius:999px;
+  }
+  p.lede{
+    color:var(--ink-soft);
+    font-size:14.5px;
+    margin:0 0 28px;
+    max-width:640px;
+    line-height:1.55;
+  }
+
+  .steps{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-bottom:26px;
+  }
+  .step-pill{
+    background:var(--paper-card);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:9px 14px;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    gap:8px;
+    transition:all .2s ease;
+  }
+  .step-pill .num{
+    width:19px;height:19px;
+    border-radius:50%;
+    background:var(--line);
+    color:#fff;
+    font-size:11px;
+    display:flex;align-items:center;justify-content:center;
+    flex:none;
+  }
+  .step-pill.active{
+    border-color:var(--navy);
+    color:var(--navy-deep);
+    box-shadow:0 2px 10px rgba(30,51,80,0.08);
+  }
+  .step-pill.active .num{background:var(--navy);}
+  .step-pill.done .num{background:var(--good);}
+  .step-pill.done{color:var(--ink);}
+
+  .card{
+    background:var(--paper-card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px;
+    margin-bottom:20px;
+  }
+  .card h2{
+    font-family:'Spectral',serif;
+    font-size:17px;
+    font-weight:600;
+    margin:0 0 4px;
+    color:var(--navy-deep);
+  }
+  .card .sub{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin:0 0 16px;
+  }
+
+  .drop-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  @media (max-width:640px){ .drop-row{grid-template-columns:1fr;} }
+
+  .dropzone{
+    border:1.6px dashed var(--line);
+    border-radius:8px;
+    padding:22px 14px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+    background:#FBFAF6;
+  }
+  .dropzone:hover, .dropzone.drag{
+    border-color:var(--navy);
+    background:#F2F5FA;
+  }
+  .dropzone input{display:none;}
+  .dropzone .icon{font-size:22px;margin-bottom:6px;display:block;}
+  .dropzone .label{font-weight:600;font-size:13.5px;color:var(--ink);}
+  .dropzone .hint{font-size:12px;color:var(--ink-soft);margin-top:3px;}
+  .dropzone .filename{
+    margin-top:8px;font-size:12.5px;font-weight:600;color:var(--good);
+    word-break:break-all;
+  }
+
+  .editor-card{display:none;}
+  .editor-card.show{display:block;}
+
+  .toolbar{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-bottom:16px;
+    padding-bottom:16px;
+    border-bottom:1px solid var(--line);
+  }
+  .toolbar .group{display:flex;align-items:center;gap:8px;font-size:13px;}
+  .toolbar label{color:var(--ink-soft);font-weight:600;}
+  select{
+    font-family:'Inter',sans-serif;
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:6px 8px;
+    font-size:13px;
+    background:#fff;
+    color:var(--ink);
+  }
+  input[type=range]{accent-color:var(--navy); width:120px;}
+  .btn{
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:13px;
+    border-radius:7px;
+    padding:8px 14px;
+    border:1px solid var(--navy);
+    background:var(--navy);
+    color:#fff;
+    cursor:pointer;
+    transition:transform .1s ease, background .15s ease;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .btn:hover{background:var(--navy-deep);}
+  .btn:active{transform:scale(0.97);}
+  .btn.ghost{
+    background:transparent;
+    color:var(--navy);
+  }
+  .btn.ghost:hover{background:rgba(30,51,80,0.06);}
+  .btn.gold{
+    background:var(--gold);
+    border-color:var(--gold);
+  }
+  .btn.gold:hover{background:#9c7a26;}
+  .btn:disabled{opacity:0.45;cursor:not-allowed;}
+
+  .stage-outer{
+    display:flex;
+    justify-content:flex-start;
+    background:#EFEDE4;
+    border-radius:8px;
+    padding:24px;
+    overflow:auto;
+    max-height:65vh;
+    touch-action:pan-x pan-y pinch-zoom;
+    -webkit-overflow-scrolling:touch;
+  }
+  .stage{
+    position:relative;
+    background:#fff;
+    box-shadow:0 4px 22px rgba(20,30,50,0.18);
+    transform-origin:top left;
+    flex:none;
+  }
+  .stage canvas{display:block;}
+
+  .zoom-group{display:flex;align-items:center;gap:6px;}
+  .zoom-btn{
+    width:28px;height:28px;
+    border-radius:6px;
+    border:1px solid var(--line);
+    background:#fff;
+    color:var(--navy-deep);
+    font-size:16px;
+    font-weight:700;
+    line-height:1;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .zoom-btn:hover{background:#F2F5FA;border-color:var(--navy);}
+  .zoom-btn:active{transform:scale(0.94);}
+  .zoom-label{
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    min-width:42px;
+    text-align:center;
+  }
+
+  .logo-layer{
+    position:absolute;
+    cursor:grab;
+    outline:2px dashed transparent;
+    touch-action:none;
+  }
+  .logo-layer img{
+    width:100%;height:100%;
+    display:block;
+    user-select:none;
+    -webkit-user-drag:none;
+    pointer-events:none;
+  }
+  .logo-layer.selected{outline-color:var(--gold);}
+  .logo-layer:active{cursor:grabbing;}
+
+  .handle{
+    position:absolute;
+    width:14px;height:14px;
+    background:var(--gold);
+    border:2px solid #fff;
+    border-radius:50%;
+    right:-8px;
+    bottom:-8px;
+    cursor:nwse-resize;
+    box-shadow:0 1px 4px rgba(0,0,0,0.35);
+    touch-action:none;
+  }
+
+  .hint-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:14px;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .hint-row .note{font-size:12px;color:var(--ink-soft);}
+
+  footer.status{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    text-align:center;
+    margin-top:8px;
+  }
+  .error-banner{
+    background:#FBEAE6;
+    border:1px solid #E4B4A6;
+    color:var(--danger);
+    padding:10px 14px;
+    border-radius:8px;
+    font-size:13px;
+    margin-bottom:16px;
+    display:none;
+  }
+  .error-banner.show{display:block;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Tempel Logo ke PDF</h1>
+    <span class="eyebrow">Alat pribadi</span>
+  </header>
+  <p class="lede">Unggah PDF surat dan logo, lalu geser dan atur ukurannya langsung di halaman. Hasilnya bisa diunduh sebagai PDF baru.</p>
+
+  <div class="steps">
+    <div class="step-pill active" id="pill-1"><span class="num">1</span>Unggah PDF &amp; logo</div>
+    <div class="step-pill" id="pill-2"><span class="num">2</span>Atur posisi &amp; ukuran</div>
+    <div class="step-pill" id="pill-3"><span class="num">3</span>Unduh hasil</div>
+  </div>
+
+  <div class="error-banner" id="errorBanner"></div>
+
+  <div class="card" id="uploadCard">
+    <h2>Unggah berkas</h2>
+    <p class="sub">PDF sebagai dokumen dasar, gambar logo (PNG/JPG) yang akan ditempelkan.</p>
+    <div class="drop-row">
+      <label class="dropzone" id="dz-pdf">
+        <input type="file" id="input-pdf" accept="application/pdf">
+        <span class="icon">📄</span>
+        <span class="label">Pilih file PDF</span>
+        <span class="hint">atau seret ke sini</span>
+        <div class="filename" id="pdf-filename"></div>
+      </label>
+      <label class="dropzone" id="dz-logo">
+        <input type="file" id="input-logo" accept="image/png, image/jpeg">
+        <span class="icon">🖼️</span>
+        <span class="label">Pilih gambar logo</span>
+        <span class="hint">PNG atau JPG</span>
+        <div class="filename" id="logo-filename"></div>
+      </label>
+    </div>
+  </div>
+
+  <div class="card editor-card" id="editorCard">
+    <h2>Atur posisi logo</h2>
+    <p class="sub">Seret logo untuk memindahkan. Tarik titik emas di sudut untuk memperbesar / memperkecil.</p>
+
+    <div class="toolbar">
+      <div class="group">
+        <label for="pageSelect">Halaman</label>
+        <select id="pageSelect"></select>
+      </div>
+      <div class="group">
+        <label for="sizeSlider">Ukuran</label>
+        <input type="range" id="sizeSlider" min="20" max="600" value="120">
+      </div>
+      <div class="group">
+        <label>Zoom</label>
+        <div class="zoom-group">
+          <button class="zoom-btn" id="zoomOutBtn" type="button" title="Perkecil tampilan">−</button>
+          <span class="zoom-label" id="zoomLabel">100%</span>
+          <button class="zoom-btn" id="zoomInBtn" type="button" title="Perbesar tampilan">+</button>
+        </div>
+      </div>
+      <button class="btn ghost" id="fitBtn" type="button">⤢ Pas layar</button>
+      <button class="btn ghost" id="resetBtn" type="button">↺ Posisi awal</button>
+      <button class="btn ghost" id="changeLogoBtn" type="button">Ganti logo</button>
+    </div>
+
+    <div class="stage-outer">
+      <div class="stage" id="stage">
+        <canvas id="pdfCanvas"></canvas>
+        <div class="logo-layer selected" id="logoLayer" style="display:none;">
+          <img id="logoImg" src="" alt="logo">
+          <div class="handle" id="resizeHandle"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hint-row">
+      <span class="note" id="posNote">Logo hanya ditempel di halaman yang sedang dipilih. Gunakan tombol Zoom untuk memperbesar, lalu geser dua jari di area pratinjau untuk menggulir.</span>
+      <button class="btn ghost" id="downloadWordBtn" type="button">⬇ Unduh Word (.docx)</button>
+      <button class="btn gold" id="downloadBtn" type="button">⬇ Unduh PDF dengan logo</button>
+    </div>
+  </div>
+
+  <footer class="status" id="statusLine"></footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const RENDER_SCALE = 1.5; // pixel per titik PDF saat dirender di layar
+
+const state = {
+  pdfBytes: null,
+  pdfDoc: null,        // pdf.js document (untuk render)
+  numPages: 0,
+  currentPage: 1,
+  pageViewports: {},    // cache viewport per halaman { pageNum: {widthPt, heightPt} }
+  logoFile: null,
+  logoBitmap: null,     // Image() untuk logo
+  logoMime: null,
+  // posisi & ukuran logo dalam PIXEL layar, relatif ke stage/canvas halaman AKTIF
+  logoBox: { x: 24, y: 24, w: 120, h: 60 },
+  logoPlacedOn: {},      // simpan posisi per halaman: { pageNum: {x,y,w,h} }
+  logoAspect: 1,
+  zoom: 1,               // level zoom tampilan (1 = 100%)
+};
+
+const ZOOM_MIN = 0.4;
+const ZOOM_MAX = 3;
+const ZOOM_STEP = 0.2;
+
+const el = {
+  errorBanner: document.getElementById('errorBanner'),
+  inputPdf: document.getElementById('input-pdf'),
+  inputLogo: document.getElementById('input-logo'),
+  dzPdf: document.getElementById('dz-pdf'),
+  dzLogo: document.getElementById('dz-logo'),
+  pdfFilename: document.getElementById('pdf-filename'),
+  logoFilename: document.getElementById('logo-filename'),
+  uploadCard: document.getElementById('uploadCard'),
+  editorCard: document.getElementById('editorCard'),
+  pillPdf: document.getElementById('pill-1'),
+  pillEditor: document.getElementById('pill-2'),
+  pillDownload: document.getElementById('pill-3'),
+  pageSelect: document.getElementById('pageSelect'),
+  sizeSlider: document.getElementById('sizeSlider'),
+  resetBtn: document.getElementById('resetBtn'),
+  changeLogoBtn: document.getElementById('changeLogoBtn'),
+  stageOuter: document.querySelector('.stage-outer'),
+  stage: document.getElementById('stage'),
+  canvas: document.getElementById('pdfCanvas'),
+  zoomInBtn: document.getElementById('zoomInBtn'),
+  zoomOutBtn: document.getElementById('zoomOutBtn'),
+  zoomLabel: document.getElementById('zoomLabel'),
+  fitBtn: document.getElementById('fitBtn'),
+  logoLayer: document.getElementById('logoLayer'),
+  logoImg: document.getElementById('logoImg'),
+  resizeHandle: document.getElementById('resizeHandle'),
+  downloadBtn: document.getElementById('downloadBtn'),
+  downloadWordBtn: document.getElementById('downloadWordBtn'),
+  statusLine: document.getElementById('statusLine'),
+};
+
+function showError(msg){
+  el.errorBanner.textContent = msg;
+  el.errorBanner.classList.add('show');
+}
+function clearError(){
+  el.errorBanner.classList.remove('show');
+}
+function setStatus(msg){
+  el.statusLine.textContent = msg || '';
+}
+
+// ---------- Upload PDF ----------
+// Klik pada label dropzone otomatis membuka input file (perilaku HTML standar),
+// jadi tidak perlu memanggil .click() secara manual di sini.
+el.inputPdf.addEventListener('change', (e)=>{
+  const f = e.target.files[0];
+  if(f) handlePdfFile(f);
+});
+setupDrag(el.dzPdf, handlePdfFile, 'application/pdf');
+
+async function handlePdfFile(file){
+  clearError();
+  if(file.type !== 'application/pdf'){
+    showError('Berkas harus berformat PDF.');
+    return;
+  }
+  try{
+    const buf = await file.arrayBuffer();
+    state.pdfBytes = buf;
+    const loadingTask = pdfjsLib.getDocument({ data: buf.slice(0) });
+    state.pdfDoc = await loadingTask.promise;
+    state.numPages = state.pdfDoc.numPages;
+    el.pdfFilename.textContent = file.name;
+    populatePageSelect();
+    maybeEnterEditor();
+  }catch(err){
+    console.error(err);
+    showError('Gagal membaca PDF. Pastikan berkas tidak rusak.');
+  }
+}
+
+function populatePageSelect(){
+  el.pageSelect.innerHTML = '';
+  for(let i=1;i<=state.numPages;i++){
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = `Halaman ${i} dari ${state.numPages}`;
+    el.pageSelect.appendChild(opt);
+  }
+  state.currentPage = 1;
+}
+
+// ---------- Upload Logo ----------
+// Sama seperti dropzone PDF — klik pada label sudah otomatis membuka input file.
+el.inputLogo.addEventListener('change', (e)=>{
+  const f = e.target.files[0];
+  if(f) handleLogoFile(f);
+});
+setupDrag(el.dzLogo, handleLogoFile, 'image/');
+
+function handleLogoFile(file){
+  clearError();
+  if(!file.type.startsWith('image/') || (file.type!=='image/png' && file.type!=='image/jpeg')){
+    showError('Logo harus berformat PNG atau JPG.');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      state.logoFile = file;
+      state.logoMime = file.type;
+      state.logoBitmap = img;
+      state.logoAspect = img.width / img.height;
+      el.logoFilename.textContent = file.name;
+      el.logoImg.src = ev.target.result;
+      // ukuran awal logo: lebar 120px layar, tinggi menyesuaikan aspek
+      const w = 120;
+      const h = w / state.logoAspect;
+      state.logoBox = { x: 20, y: 20, w, h };
+      el.sizeSlider.value = Math.round(w);
+      state.logoPlacedOn = {}; // reset penempatan per halaman
+      maybeEnterEditor();
+    };
+    img.onerror = ()=> showError('Gagal membaca gambar logo.');
+    img.src = ev.target.result;
+  };
+  reader.onerror = ()=> showError('Gagal membaca gambar logo.');
+  reader.readAsDataURL(file);
+}
+
+function setupDrag(dropzone, handler, acceptPrefix){
+  ['dragenter','dragover'].forEach(evt=>{
+    dropzone.addEventListener(evt, (e)=>{ e.preventDefault(); dropzone.classList.add('drag'); });
+  });
+  ['dragleave','drop'].forEach(evt=>{
+    dropzone.addEventListener(evt, (e)=>{ e.preventDefault(); dropzone.classList.remove('drag'); });
+  });
+  dropzone.addEventListener('drop', (e)=>{
+    const f = e.dataTransfer.files[0];
+    if(f && f.type.startsWith(acceptPrefix)) handler(f);
+    else showError('Jenis berkas tidak sesuai untuk kotak ini.');
+  });
+}
+
+el.changeLogoBtn.addEventListener('click', ()=>{ el.inputLogo.click(); });
+
+// ---------- Masuk ke editor ----------
+function maybeEnterEditor(){
+  if(state.pdfDoc && state.logoBitmap){
+    el.uploadCard.style.display = 'none';
+    el.editorCard.classList.add('show');
+    el.pillPdf.classList.add('done');
+    el.pillEditor.classList.add('active');
+    renderCurrentPage();
+  }
+}
+
+el.pageSelect.addEventListener('change', ()=>{
+  // simpan posisi logo halaman sebelumnya
+  savePositionForCurrentPage();
+  state.currentPage = parseInt(el.pageSelect.value, 10);
+  renderCurrentPage();
+});
+
+function savePositionForCurrentPage(){
+  state.logoPlacedOn[state.currentPage] = { ...state.logoBox };
+}
+
+async function renderCurrentPage(){
+  clearError();
+  setStatus('Merender halaman...');
+  try{
+    const page = await state.pdfDoc.getPage(state.currentPage);
+    const viewport = page.getViewport({ scale: RENDER_SCALE });
+    const canvas = el.canvas;
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    el.stage.style.width = viewport.width + 'px';
+    el.stage.style.height = viewport.height + 'px';
+    const ctx = canvas.getContext('2d');
+    await page.render({ canvasContext: ctx, viewport }).promise;
+
+    // simpan info titik PDF asli utk konversi nanti
+    const unscaled = page.getViewport({ scale: 1 });
+    state.pageViewports[state.currentPage] = { widthPt: unscaled.width, heightPt: unscaled.height, pxW: viewport.width, pxH: viewport.height };
+
+    // pulihkan posisi logo utk halaman ini jika sudah pernah diatur, kalau belum pakai default
+    const saved = state.logoPlacedOn[state.currentPage];
+    if(saved){
+      state.logoBox = { ...saved };
+    } else {
+      const w = Math.min(160, viewport.width * 0.28);
+      const h = w / state.logoAspect;
+      state.logoBox = { x: 20, y: 20, w, h };
+    }
+    el.sizeSlider.value = Math.round(state.logoBox.w);
+    el.logoLayer.style.display = 'block';
+    applyLogoBoxToDom();
+    fitToScreen();
+    setStatus('');
+  }catch(err){
+    console.error(err);
+    showError('Gagal merender halaman PDF.');
+    setStatus('');
+  }
+}
+
+// ---------- Zoom tampilan ----------
+function setZoom(z){
+  state.zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z));
+  el.stage.style.transform = `scale(${state.zoom})`;
+  el.zoomLabel.textContent = Math.round(state.zoom * 100) + '%';
+}
+function fitToScreen(){
+  const vp = state.pageViewports[state.currentPage];
+  if(!vp) return;
+  const available = el.stageOuter.clientWidth - 48; // dikurangi padding kiri+kanan
+  const z = available > 0 ? Math.min(1, available / vp.pxW) : 1;
+  setZoom(z);
+}
+el.zoomInBtn.addEventListener('click', ()=> setZoom(state.zoom + ZOOM_STEP));
+el.zoomOutBtn.addEventListener('click', ()=> setZoom(state.zoom - ZOOM_STEP));
+el.fitBtn.addEventListener('click', fitToScreen);
+
+function applyLogoBoxToDom(){
+  const b = state.logoBox;
+  el.logoLayer.style.left = b.x + 'px';
+  el.logoLayer.style.top = b.y + 'px';
+  el.logoLayer.style.width = b.w + 'px';
+  el.logoLayer.style.height = b.h + 'px';
+}
+
+// ---------- Drag untuk memindahkan ----------
+let dragState = null;
+el.logoLayer.addEventListener('pointerdown', (e)=>{
+  if(e.target === el.resizeHandle) return; // biar resize handle punya listener sendiri
+  e.preventDefault();
+  el.logoLayer.setPointerCapture(e.pointerId);
+  dragState = {
+    startX: e.clientX, startY: e.clientY,
+    origX: state.logoBox.x, origY: state.logoBox.y,
+  };
+});
+el.logoLayer.addEventListener('pointermove', (e)=>{
+  if(!dragState) return;
+  // dx/dy dari pointer dalam pixel layar sebenarnya; dibagi zoom
+  // supaya sesuai dengan koordinat internal stage (sebelum di-scale).
+  const dx = (e.clientX - dragState.startX) / state.zoom;
+  const dy = (e.clientY - dragState.startY) / state.zoom;
+  const stageRect = el.stage.getBoundingClientRect();
+  const stageW = stageRect.width / state.zoom;
+  const stageH = stageRect.height / state.zoom;
+  let nx = dragState.origX + dx;
+  let ny = dragState.origY + dy;
+  // batasi agar tetap dalam area halaman
+  nx = Math.max(-state.logoBox.w*0.5, Math.min(nx, stageW - state.logoBox.w*0.5));
+  ny = Math.max(-state.logoBox.h*0.5, Math.min(ny, stageH - state.logoBox.h*0.5));
+  state.logoBox.x = nx;
+  state.logoBox.y = ny;
+  applyLogoBoxToDom();
+});
+function endDrag(e){
+  if(dragState){
+    try{ el.logoLayer.releasePointerCapture(e.pointerId); }catch(_){}
+    dragState = null;
+  }
+}
+el.logoLayer.addEventListener('pointerup', endDrag);
+el.logoLayer.addEventListener('pointercancel', endDrag);
+
+// ---------- Resize via sudut ----------
+let resizeState = null;
+el.resizeHandle.addEventListener('pointerdown', (e)=>{
+  e.preventDefault();
+  e.stopPropagation();
+  el.resizeHandle.setPointerCapture(e.pointerId);
+  resizeState = {
+    startX: e.clientX, startY: e.clientY,
+    origW: state.logoBox.w, origH: state.logoBox.h,
+  };
+});
+el.resizeHandle.addEventListener('pointermove', (e)=>{
+  if(!resizeState) return;
+  const dx = (e.clientX - resizeState.startX) / state.zoom;
+  let newW = Math.max(20, resizeState.origW + dx);
+  newW = Math.min(newW, 900);
+  const newH = newW / state.logoAspect;
+  state.logoBox.w = newW;
+  state.logoBox.h = newH;
+  el.sizeSlider.value = Math.round(newW);
+  applyLogoBoxToDom();
+});
+function endResize(e){
+  if(resizeState){
+    try{ el.resizeHandle.releasePointerCapture(e.pointerId); }catch(_){}
+    resizeState = null;
+  }
+}
+el.resizeHandle.addEventListener('pointerup', endResize);
+el.resizeHandle.addEventListener('pointercancel', endResize);
+
+// ---------- Slider ukuran ----------
+el.sizeSlider.addEventListener('input', ()=>{
+  const newW = parseFloat(el.sizeSlider.value);
+  const newH = newW / state.logoAspect;
+  state.logoBox.w = newW;
+  state.logoBox.h = newH;
+  applyLogoBoxToDom();
+});
+
+// ---------- Reset posisi ----------
+el.resetBtn.addEventListener('click', ()=>{
+  const vp = state.pageViewports[state.currentPage];
+  const w = vp ? Math.min(160, vp.pxW * 0.28) : 120;
+  const h = w / state.logoAspect;
+  state.logoBox = { x: 20, y: 20, w, h };
+  el.sizeSlider.value = Math.round(w);
+  applyLogoBoxToDom();
+});
+
+// ---------- Unduh hasil ----------
+el.downloadBtn.addEventListener('click', async ()=>{
+  clearError();
+  savePositionForCurrentPage();
+  el.downloadBtn.disabled = true;
+  setStatus('Menyusun PDF hasil...');
+  try{
+    const { PDFDocument } = PDFLib;
+    const pdfDoc = await PDFDocument.load(state.pdfBytes.slice(0));
+
+    // baca logo sebagai bytes
+    const logoArrayBuf = await state.logoFile.arrayBuffer();
+    let embeddedImage;
+    if(state.logoMime === 'image/png'){
+      embeddedImage = await pdfDoc.embedPng(logoArrayBuf);
+    } else {
+      embeddedImage = await pdfDoc.embedJpg(logoArrayBuf);
+    }
+
+    const pages = pdfDoc.getPages();
+    for(const [pageNumStr, box] of Object.entries(state.logoPlacedOn)){
+      const pageNum = parseInt(pageNumStr, 10);
+      const vp = state.pageViewports[pageNum];
+      if(!vp) continue;
+      const page = pages[pageNum - 1];
+      if(!page) continue;
+
+      const scaleToPt = vp.widthPt / vp.pxW; // konversi pixel layar -> titik PDF
+      const wPt = box.w * scaleToPt;
+      const hPt = box.h * scaleToPt;
+      const xPt = box.x * scaleToPt;
+      // sumbu Y PDF dari bawah, sedangkan box.y dihitung dari atas layar
+      const yPt = vp.heightPt - (box.y * scaleToPt) - hPt;
+
+      page.drawImage(embeddedImage, {
+        x: xPt,
+        y: yPt,
+        width: wPt,
+        height: hPt,
+      });
+    }
+
+    const outBytes = await pdfDoc.save();
+    const blob = new Blob([outBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const baseName = 'dokumen-dengan-logo.pdf';
+    a.download = baseName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+
+    el.pillDownload.classList.add('active');
+    setStatus('Selesai! PDF sudah diunduh.');
+  }catch(err){
+    console.error(err);
+    showError('Gagal membuat PDF hasil. Coba lagi.');
+    setStatus('');
+  }finally{
+    el.downloadBtn.disabled = false;
+  }
+});
+
+// ---------- Unduh hasil sebagai Word (.docx) — TEKS BISA DIEDIT ----------
+// Strategi: ambil teks asli dari tiap halaman PDF (pdf.js getTextContent),
+// kelompokkan per baris berdasarkan posisi, lalu taruh tiap baris sebagai
+// paragraf Word dengan "frame" (kotak teks) yang diposisikan persis sesuai
+// koordinat aslinya di halaman. Logo ditempel sebagai gambar di posisi yang
+// sama seperti di editor. Hasilnya: kata-kata di Word betul-betul bisa diklik
+// dan diedit, bukan sekadar gambar screenshot halaman.
+//
+// Kalau PDF ternyata hasil scan / gambar (tidak ada teks yang bisa diambil),
+// otomatis fallback ke cara lama: setiap halaman jadi gambar utuh di Word.
+
+function groupTextIntoLines(items){
+  const Y_TOL = 2.2; // toleransi (pt) utk menganggap dua potongan teks berada di baris yg sama
+  const parsed = items
+    .filter(it => it && typeof it.str === 'string' && it.str.length > 0)
+    .map(it => {
+      const tx = it.transform; // [a,b,c,d,e,f] - e,f = posisi; a..d = skala/rotasi
+      const fontSize = Math.sqrt(tx[2]*tx[2] + tx[3]*tx[3]) || Math.abs(tx[3]) || 10;
+      return { text: it.str, x: tx[4], y: tx[5], width: it.width || 0, fontSize };
+    })
+    .sort((a,b)=> (b.y - a.y) || (a.x - b.x));
+
+  const lines = [];
+  for(const item of parsed){
+    let line = lines.find(l => Math.abs(l.baseline - item.y) < Y_TOL);
+    if(!line){
+      line = { baseline: item.y, items: [] };
+      lines.push(line);
+    }
+    line.items.push(item);
+  }
+  lines.sort((a,b)=> b.baseline - a.baseline);
+
+  return lines.map(line=>{
+    line.items.sort((a,b)=> a.x - b.x);
+    let text = '';
+    let lastEnd = null;
+    let minX = Infinity;
+    let maxFont = 0;
+    for(const it of line.items){
+      if(it.x < minX) minX = it.x;
+      if(it.fontSize > maxFont) maxFont = it.fontSize;
+      if(lastEnd !== null){
+        const gap = it.x - lastEnd;
+        if(gap > it.fontSize * 0.18) text += ' ';
+      }
+      text += it.text;
+      lastEnd = it.x + it.width;
+    }
+    return { text: text.trim(), x: minX, yTop: line.baseline + maxFont * 0.82, fontSize: maxFont };
+  }).filter(l => l.text.length > 0);
+}
+
+async function buildEditableWordDoc(){
+  const { Document, Paragraph, TextRun, ImageRun, FrameAnchorType, FrameWrap } = docx;
+  const sections = [];
+  let totalLines = 0;
+
+  let logoBytes = null;
+  if(state.logoFile){
+    logoBytes = await state.logoFile.arrayBuffer();
+  }
+  const scaleToPt = 1 / RENDER_SCALE; // logoBox tersimpan dlm px layar pd skala RENDER_SCALE
+
+  for(let pageNum = 1; pageNum <= state.numPages; pageNum++){
+    const page = await state.pdfDoc.getPage(pageNum);
+    const unscaled = page.getViewport({ scale: 1 }); // satuan: titik PDF (pt)
+    const pageWidthPt = unscaled.width;
+    const pageHeightPt = unscaled.height;
+
+    const textContent = await page.getTextContent();
+    const lines = groupTextIntoLines(textContent.items);
+    totalLines += lines.length;
+
+    const children = [];
+    for(const line of lines){
+      const xTwip = Math.max(0, Math.round(line.x * 20));
+      const topPt = Math.max(0, pageHeightPt - line.yTop);
+      const yTwip = Math.round(topPt * 20);
+      const widthTwip = Math.max(300, Math.round((pageWidthPt - line.x + 12) * 20));
+      const heightTwip = Math.max(200, Math.round(line.fontSize * 1.35 * 20));
+      const sizeHalfPt = Math.max(12, Math.round(line.fontSize * 2));
+
+      children.push(new Paragraph({
+        frame: {
+          type: 'absolute',
+          position: { x: xTwip, y: yTwip },
+          width: widthTwip,
+          height: heightTwip,
+          anchor: { horizontal: FrameAnchorType.PAGE, vertical: FrameAnchorType.PAGE },
+          wrap: FrameWrap.NONE,
+        },
+        spacing: { before: 0, after: 0, line: 240 },
+        children: [ new TextRun({ text: line.text, size: sizeHalfPt }) ],
+      }));
+    }
+
+    const box = state.logoPlacedOn[pageNum];
+    if(box && logoBytes){
+      const wPt = box.w * scaleToPt;
+      const hPt = box.h * scaleToPt;
+      const xPt = box.x * scaleToPt;
+      const yPtTop = box.y * scaleToPt;
+
+      children.push(new Paragraph({
+        frame: {
+          type: 'absolute',
+          position: { x: Math.round(xPt * 20), y: Math.round(yPtTop * 20) },
+          width: Math.round(wPt * 20),
+          height: Math.round(hPt * 20),
+          anchor: { horizontal: FrameAnchorType.PAGE, vertical: FrameAnchorType.PAGE },
+          wrap: FrameWrap.NONE,
+        },
+        children: [ new ImageRun({
+          data: logoBytes,
+          transformation: {
+            width: Math.round(wPt * 96 / 72),
+            height: Math.round(hPt * 96 / 72),
+          },
+        }) ],
+      }));
+    }
+
+    // pastikan halaman tidak kosong total (kalau tidak ada teks & tidak ada logo)
+    if(children.length === 0){
+      children.push(new Paragraph({ children: [] }));
+    }
+
+    sections.push({
+      properties: {
+        page: {
+          size: { width: Math.round(pageWidthPt * 20), height: Math.round(pageHeightPt * 20) },
+          margin: { top: 0, bottom: 0, left: 0, right: 0 },
+        },
+      },
+      children,
+    });
+  }
+
+  return { doc: new Document({ sections }), totalLines };
+}
+
+// fallback lama: tiap halaman jadi 1 gambar penuh (dipakai kalau PDF adalah hasil scan / tanpa teks)
+const WORD_EXPORT_SCALE = 2;
+async function buildRasterWordDoc(){
+  const { Document, Paragraph, ImageRun } = docx;
+  const sections = [];
+  for(let pageNum = 1; pageNum <= state.numPages; pageNum++){
+    const page = await state.pdfDoc.getPage(pageNum);
+    const viewport = page.getViewport({ scale: WORD_EXPORT_SCALE });
+    const unscaled = page.getViewport({ scale: 1 });
+
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext('2d');
+    await page.render({ canvasContext: ctx, viewport }).promise;
+
+    const box = state.logoPlacedOn[pageNum];
+    if(box && state.logoBitmap){
+      const factor = WORD_EXPORT_SCALE / RENDER_SCALE;
+      ctx.drawImage(state.logoBitmap, box.x * factor, box.y * factor, box.w * factor, box.h * factor);
+    }
+
+    const dataUrl = canvas.toDataURL('image/png');
+    const imgBytes = await (await fetch(dataUrl)).arrayBuffer();
+    const pageWidthTwip = Math.round(unscaled.width * 20);
+    const pageHeightTwip = Math.round(unscaled.height * 20);
+    const imgW96 = Math.round(unscaled.width * 96 / 72);
+    const imgH96 = Math.round(unscaled.height * 96 / 72);
+
+    sections.push({
+      properties: {
+        page: { size: { width: pageWidthTwip, height: pageHeightTwip }, margin: { top:0,bottom:0,left:0,right:0 } },
+      },
+      children: [ new Paragraph({ children: [ new ImageRun({ data: imgBytes, transformation: { width: imgW96, height: imgH96 } }) ] }) ],
+    });
+  }
+  return new Document({ sections });
+}
+
+el.downloadWordBtn.addEventListener('click', async ()=>{
+  clearError();
+  savePositionForCurrentPage();
+  el.downloadWordBtn.disabled = true;
+  setStatus('Menyusun dokumen Word (teks bisa diedit)...');
+  try{
+    const { Packer } = docx;
+    let blob, isEditable = true;
+
+    const { doc, totalLines } = await buildEditableWordDoc();
+    if(totalLines === 0){
+      // PDF tampaknya hasil scan/gambar, tidak ada teks yang bisa diambil
+      isEditable = false;
+      setStatus('PDF ini sepertinya hasil scan (tanpa teks), membuat Word dari gambar halaman...');
+      const rasterDoc = await buildRasterWordDoc();
+      blob = await Packer.toBlob(rasterDoc);
+    } else {
+      blob = await Packer.toBlob(doc);
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'dokumen-dengan-logo.docx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+
+    el.pillDownload.classList.add('active');
+    setStatus(isEditable
+      ? 'Selesai! Word (.docx) sudah diunduh — kata-katanya bisa diedit langsung di Word.'
+      : 'Selesai! Word (.docx) sudah diunduh (dari gambar halaman, karena PDF tidak punya teks).');
+  }catch(err){
+    console.error(err);
+    showError('Gagal membuat dokumen Word. Coba lagi.');
+    setStatus('');
+  }finally{
+    el.downloadWordBtn.disabled = false;
+  }
+});
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
