@@ -312,24 +312,150 @@
     display:none;
   }
   .error-banner.show{display:block;}
+
+  .tool-tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:22px;
+    flex-wrap:wrap;
+  }
+  .tool-tab{
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    border:1px solid var(--line);
+    background:var(--paper-card);
+    color:var(--ink-soft);
+    padding:10px 16px;
+    border-radius:9px;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .tool-tab:hover{border-color:var(--navy);color:var(--navy-deep);}
+  .tool-tab.active{
+    background:var(--navy);
+    border-color:var(--navy);
+    color:#fff;
+  }
+
+  .thumb-toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:16px;
+    padding-bottom:16px;
+    border-bottom:1px solid var(--line);
+  }
+  .thumb-toolbar .count{font-size:13px;color:var(--ink-soft);font-weight:600;}
+  .thumb-toolbar .count b{color:var(--danger);}
+
+  .thumb-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));
+    gap:14px;
+    max-height:65vh;
+    overflow-y:auto;
+    padding:4px;
+  }
+  .thumb-item{
+    position:relative;
+    cursor:pointer;
+    border:2px solid var(--line);
+    border-radius:8px;
+    padding:8px 8px 6px;
+    background:#FBFAF6;
+    transition:all .12s ease;
+    text-align:center;
+    user-select:none;
+  }
+  .thumb-item:hover{border-color:var(--navy);}
+  .thumb-item.marked{
+    border-color:var(--danger);
+    background:#FBEAE6;
+  }
+  .thumb-item canvas{
+    width:100%;
+    height:auto;
+    display:block;
+    box-shadow:0 2px 8px rgba(20,30,50,0.15);
+    background:#fff;
+  }
+  .thumb-item .thumb-label{
+    margin-top:6px;
+    font-size:11.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+  }
+  .thumb-item.marked .thumb-label{color:var(--danger);}
+  .thumb-item .thumb-check{
+    position:absolute;
+    top:6px; right:6px;
+    width:20px;height:20px;
+    border-radius:50%;
+    background:#fff;
+    border:1.6px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;
+    font-weight:700;
+    color:transparent;
+  }
+  .thumb-item.marked .thumb-check{
+    background:var(--danger);
+    border-color:var(--danger);
+    color:#fff;
+  }
+
+  #convertPreview{
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    line-height:1.55;
+    font-size:14px;
+  }
+  #convertPreview h1,#convertPreview h2,#convertPreview h3{
+    font-family:'Spectral',serif;
+    color:var(--navy-deep);
+    margin:0.8em 0 0.4em;
+  }
+  #convertPreview p{margin:0 0 0.8em;}
+  #convertPreview table{
+    border-collapse:collapse;
+    margin-bottom:1.2em;
+    font-size:12.5px;
+  }
+  #convertPreview table td, #convertPreview table th{
+    border:1px solid var(--line);
+    padding:5px 9px;
+  }
+  #convertPreview img{max-width:100%;}
 </style>
 </head>
 <body>
 <div class="wrap">
 
   <header>
-    <h1>Tempel Logo ke PDF</h1>
+    <h1>Alat PDF</h1>
     <span class="eyebrow">Alat pribadi</span>
   </header>
-  <p class="lede">Unggah PDF surat dan logo, lalu geser dan atur ukurannya langsung di halaman. Hasilnya bisa diunduh sebagai PDF baru.</p>
+  <p class="lede">Tempel logo ke surat PDF, atau hapus beberapa halaman dari PDF. Semua diproses langsung di perangkatmu.</p>
+
+  <div class="tool-tabs">
+    <button class="tool-tab active" id="tabLogo" type="button">🏷️ Tempel Logo</button>
+    <button class="tool-tab" id="tabDelete" type="button">🗑️ Hapus Halaman</button>
+    <button class="tool-tab" id="tabInsert" type="button">📎 Sisipkan PDF</button>
+    <button class="tool-tab" id="tabConvert" type="button">🔄 Word/Excel ke PDF</button>
+  </div>
+
+  <div class="error-banner" id="errorBanner"></div>
+
+  <div id="viewLogo">
 
   <div class="steps">
     <div class="step-pill active" id="pill-1"><span class="num">1</span>Unggah PDF &amp; logo</div>
     <div class="step-pill" id="pill-2"><span class="num">2</span>Atur posisi &amp; ukuran</div>
     <div class="step-pill" id="pill-3"><span class="num">3</span>Unduh hasil</div>
   </div>
-
-  <div class="error-banner" id="errorBanner"></div>
 
   <div class="card" id="uploadCard">
     <h2>Unggah berkas</h2>
@@ -395,12 +521,133 @@
     </div>
   </div>
 
+  </div><!-- /viewLogo -->
+
+  <div id="viewDelete" style="display:none;">
+
+    <div class="card" id="deleteUploadCard">
+      <h2>Unggah PDF</h2>
+      <p class="sub">Pilih file PDF, lalu tandai halaman-halaman yang ingin dihapus.</p>
+      <div class="drop-row" style="grid-template-columns:1fr;">
+        <label class="dropzone" id="dz-del-pdf">
+          <input type="file" id="input-del-pdf" accept="application/pdf">
+          <span class="icon">📄</span>
+          <span class="label">Pilih file PDF</span>
+          <span class="hint">atau seret ke sini</span>
+          <div class="filename" id="del-pdf-filename"></div>
+        </label>
+      </div>
+    </div>
+
+    <div class="card" id="deleteEditorCard" style="display:none;">
+      <h2>Pilih halaman yang dihapus</h2>
+      <p class="sub">Klik halaman untuk menandainya. Halaman yang ditandai (merah) akan dihapus dari hasil unduhan.</p>
+
+      <div class="thumb-toolbar">
+        <div class="count"><b id="delCount">0</b> halaman ditandai untuk dihapus</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn ghost" id="delSelectAllBtn" type="button">Tandai semua</button>
+          <button class="btn ghost" id="delClearBtn" type="button">Bersihkan tanda</button>
+        </div>
+      </div>
+
+      <div class="thumb-grid" id="thumbGrid"></div>
+
+      <div class="hint-row">
+        <span class="note">Minimal satu halaman harus tersisa di PDF hasil.</span>
+        <button class="btn" id="delChangePdfBtn" type="button">Ganti PDF</button>
+        <button class="btn gold" id="downloadDeletedBtn" type="button">🗑️ Hapus &amp; Unduh PDF</button>
+      </div>
+    </div>
+
+  </div><!-- /viewDelete -->
+
+  <div id="viewInsert" style="display:none;">
+
+    <div class="card" id="insertUploadCard">
+      <h2>Unggah PDF utama</h2>
+      <p class="sub">Ini dokumen dasarnya. PDF lain akan disisipkan ke dalam dokumen ini.</p>
+      <div class="drop-row" style="grid-template-columns:1fr;">
+        <label class="dropzone" id="dz-ins-base">
+          <input type="file" id="input-ins-base" accept="application/pdf">
+          <span class="icon">📄</span>
+          <span class="label">Pilih PDF utama</span>
+          <span class="hint">atau seret ke sini</span>
+          <div class="filename" id="ins-base-filename"></div>
+        </label>
+      </div>
+    </div>
+
+    <div class="card" id="insertEditorCard" style="display:none;">
+      <h2>Sisipkan dokumen PDF lain</h2>
+      <p class="sub" id="insBaseInfo"></p>
+
+      <div class="toolbar">
+        <div class="group" style="flex:1; min-width:220px;">
+          <label for="insPositionSelect">Sisipkan di</label>
+          <select id="insPositionSelect" style="flex:1;"></select>
+        </div>
+      </div>
+
+      <div class="drop-row" style="grid-template-columns:1fr;">
+        <label class="dropzone" id="dz-ins-insert">
+          <input type="file" id="input-ins-insert" accept="application/pdf">
+          <span class="icon">📎</span>
+          <span class="label">Pilih PDF yang akan disisipkan</span>
+          <span class="hint">atau seret ke sini</span>
+          <div class="filename" id="ins-insert-filename"></div>
+        </label>
+      </div>
+
+      <div class="hint-row">
+        <span class="note" id="insInsertInfo">Belum ada PDF yang dipilih untuk disisipkan.</span>
+        <button class="btn ghost" id="insChangeBaseBtn" type="button">Ganti PDF utama</button>
+        <button class="btn gold" id="downloadInsertedBtn" type="button">📎 Sisipkan &amp; Unduh PDF</button>
+      </div>
+    </div>
+
+  </div><!-- /viewInsert -->
+
+  <div id="viewConvert" style="display:none;">
+
+    <div class="card" id="convertUploadCard">
+      <h2>Unggah file Word atau Excel</h2>
+      <p class="sub">Format didukung: Word (.docx) dan Excel (.xlsx / .xls). Dikonversi langsung di browser, tidak diunggah ke server mana pun.</p>
+      <div class="drop-row" style="grid-template-columns:1fr;">
+        <label class="dropzone" id="dz-convert">
+          <input type="file" id="input-convert" accept=".docx,.xlsx,.xls,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
+          <span class="icon">🔄</span>
+          <span class="label">Pilih file Word (.docx) atau Excel (.xlsx)</span>
+          <span class="hint">atau seret ke sini</span>
+          <div class="filename" id="convert-filename"></div>
+        </label>
+      </div>
+    </div>
+
+    <div class="card" id="convertPreviewCard" style="display:none;">
+      <h2>Pratinjau</h2>
+      <p class="sub" id="convertInfo"></p>
+      <div id="convertPreviewOuter" style="max-height:65vh; overflow:auto; border:1px solid var(--line); border-radius:8px; background:#fff; padding:24px;">
+        <div id="convertPreview"></div>
+      </div>
+      <div class="hint-row">
+        <span class="note">Tata letak PDF mengikuti pratinjau di atas — bukan salinan piksel-persis file aslinya, terutama untuk Word.</span>
+        <button class="btn ghost" id="convertChangeBtn" type="button">Ganti file</button>
+        <button class="btn gold" id="downloadConvertedBtn" type="button">⬇ Unduh sebagai PDF</button>
+      </div>
+    </div>
+
+  </div><!-- /viewConvert -->
+
   <footer class="status" id="statusLine"></footer>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
@@ -1024,6 +1271,482 @@ el.downloadWordBtn.addEventListener('click', async ()=>{
     setStatus('');
   }finally{
     el.downloadWordBtn.disabled = false;
+  }
+});
+
+// ================== TAB MENU ==================
+const tabs = [
+  { btn: document.getElementById('tabLogo'), view: document.getElementById('viewLogo') },
+  { btn: document.getElementById('tabDelete'), view: document.getElementById('viewDelete') },
+  { btn: document.getElementById('tabInsert'), view: document.getElementById('viewInsert') },
+  { btn: document.getElementById('tabConvert'), view: document.getElementById('viewConvert') },
+];
+function activateTab(active){
+  clearError(); setStatus('');
+  tabs.forEach(t=>{
+    const isActive = t === active;
+    t.btn.classList.toggle('active', isActive);
+    t.view.style.display = isActive ? '' : 'none';
+  });
+}
+tabs.forEach(t=> t.btn.addEventListener('click', ()=> activateTab(t)));
+
+// ================== HAPUS HALAMAN PDF ==================
+const delState = {
+  pdfBytes: null,
+  pdfDoc: null,     // pdf.js document, untuk render thumbnail
+  numPages: 0,
+  marked: new Set(), // nomor halaman (1-based) yang ditandai utk dihapus
+};
+
+const delEl = {
+  inputPdf: document.getElementById('input-del-pdf'),
+  dzPdf: document.getElementById('dz-del-pdf'),
+  filename: document.getElementById('del-pdf-filename'),
+  uploadCard: document.getElementById('deleteUploadCard'),
+  editorCard: document.getElementById('deleteEditorCard'),
+  thumbGrid: document.getElementById('thumbGrid'),
+  delCount: document.getElementById('delCount'),
+  selectAllBtn: document.getElementById('delSelectAllBtn'),
+  clearBtn: document.getElementById('delClearBtn'),
+  changePdfBtn: document.getElementById('delChangePdfBtn'),
+  downloadBtn: document.getElementById('downloadDeletedBtn'),
+};
+
+delEl.inputPdf.addEventListener('change', (e)=>{
+  const f = e.target.files[0];
+  if(f) handleDeletePdfFile(f);
+});
+setupDrag(delEl.dzPdf, handleDeletePdfFile, 'application/pdf');
+
+async function handleDeletePdfFile(file){
+  clearError();
+  if(file.type !== 'application/pdf'){
+    showError('Berkas harus berformat PDF.');
+    return;
+  }
+  try{
+    setStatus('Membaca PDF...');
+    const buf = await file.arrayBuffer();
+    delState.pdfBytes = buf;
+    const loadingTask = pdfjsLib.getDocument({ data: buf.slice(0) });
+    delState.pdfDoc = await loadingTask.promise;
+    delState.numPages = delState.pdfDoc.numPages;
+    delState.marked = new Set();
+    delEl.filename.textContent = file.name;
+    await renderThumbnails();
+    delEl.uploadCard.style.display = 'none';
+    delEl.editorCard.style.display = '';
+    updateDelCount();
+    setStatus('');
+  }catch(err){
+    console.error(err);
+    showError('Gagal membaca PDF. Pastikan berkas tidak rusak.');
+    setStatus('');
+  }
+}
+
+async function renderThumbnails(){
+  delEl.thumbGrid.innerHTML = '';
+  const THUMB_SCALE = 0.35;
+  for(let i=1;i<=delState.numPages;i++){
+    const page = await delState.pdfDoc.getPage(i);
+    const viewport = page.getViewport({ scale: THUMB_SCALE });
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext('2d');
+    await page.render({ canvasContext: ctx, viewport }).promise;
+
+    const item = document.createElement('div');
+    item.className = 'thumb-item';
+    item.dataset.page = i;
+    item.innerHTML = `<div class="thumb-check">✓</div>`;
+    item.appendChild(canvas);
+    const label = document.createElement('div');
+    label.className = 'thumb-label';
+    label.textContent = `Halaman ${i}`;
+    item.appendChild(label);
+
+    item.addEventListener('click', ()=> toggleMark(i, item));
+    delEl.thumbGrid.appendChild(item);
+  }
+}
+
+function toggleMark(pageNum, itemEl){
+  if(delState.marked.has(pageNum)){
+    delState.marked.delete(pageNum);
+    itemEl.classList.remove('marked');
+  } else {
+    delState.marked.add(pageNum);
+    itemEl.classList.add('marked');
+  }
+  updateDelCount();
+}
+
+function updateDelCount(){
+  delEl.delCount.textContent = delState.marked.size;
+}
+
+delEl.selectAllBtn.addEventListener('click', ()=>{
+  delState.marked = new Set();
+  document.querySelectorAll('#thumbGrid .thumb-item').forEach(item=>{
+    delState.marked.add(parseInt(item.dataset.page, 10));
+    item.classList.add('marked');
+  });
+  updateDelCount();
+});
+
+delEl.clearBtn.addEventListener('click', ()=>{
+  delState.marked.clear();
+  document.querySelectorAll('#thumbGrid .thumb-item.marked').forEach(item=>{
+    item.classList.remove('marked');
+  });
+  updateDelCount();
+});
+
+delEl.changePdfBtn.addEventListener('click', ()=>{
+  delEl.editorCard.style.display = 'none';
+  delEl.uploadCard.style.display = '';
+  delEl.filename.textContent = '';
+  delEl.inputPdf.value = '';
+  delState.pdfBytes = null;
+  delState.pdfDoc = null;
+  delState.numPages = 0;
+  delState.marked.clear();
+});
+
+delEl.downloadBtn.addEventListener('click', async ()=>{
+  clearError();
+  if(delState.marked.size === 0){
+    showError('Belum ada halaman yang ditandai untuk dihapus.');
+    return;
+  }
+  if(delState.marked.size >= delState.numPages){
+    showError('Tidak bisa menghapus semua halaman — minimal satu halaman harus tersisa.');
+    return;
+  }
+  delEl.downloadBtn.disabled = true;
+  setStatus('Menghapus halaman & menyusun PDF hasil...');
+  try{
+    const { PDFDocument } = PDFLib;
+    const pdfDoc = await PDFDocument.load(delState.pdfBytes.slice(0));
+
+    // urutkan menurun supaya index halaman berikutnya tidak bergeser saat dihapus
+    const sortedDesc = Array.from(delState.marked).sort((a,b)=> b - a);
+    for(const pageNum of sortedDesc){
+      pdfDoc.removePage(pageNum - 1); // pdf-lib pakai index 0-based
+    }
+
+    const outBytes = await pdfDoc.save();
+    const blob = new Blob([outBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'pdf-terpotong.pdf';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+
+    setStatus(`Selesai! ${delState.marked.size} halaman dihapus, PDF hasil sudah diunduh.`);
+  }catch(err){
+    console.error(err);
+    showError('Gagal menghapus halaman. Coba lagi.');
+    setStatus('');
+  }finally{
+    delEl.downloadBtn.disabled = false;
+  }
+});
+
+// ================== SISIPKAN DOKUMEN PDF ==================
+const insState = {
+  baseBytes: null,
+  baseNumPages: 0,
+  insertBytes: null,
+  insertNumPages: 0,
+  insertFilename: '',
+};
+
+const insEl = {
+  inputBase: document.getElementById('input-ins-base'),
+  dzBase: document.getElementById('dz-ins-base'),
+  baseFilename: document.getElementById('ins-base-filename'),
+  uploadCard: document.getElementById('insertUploadCard'),
+  editorCard: document.getElementById('insertEditorCard'),
+  baseInfo: document.getElementById('insBaseInfo'),
+  positionSelect: document.getElementById('insPositionSelect'),
+  inputInsert: document.getElementById('input-ins-insert'),
+  dzInsert: document.getElementById('dz-ins-insert'),
+  insertFilename: document.getElementById('ins-insert-filename'),
+  insertInfo: document.getElementById('insInsertInfo'),
+  changeBaseBtn: document.getElementById('insChangeBaseBtn'),
+  downloadBtn: document.getElementById('downloadInsertedBtn'),
+};
+
+insEl.inputBase.addEventListener('change', (e)=>{
+  const f = e.target.files[0];
+  if(f) handleInsertBaseFile(f);
+});
+setupDrag(insEl.dzBase, handleInsertBaseFile, 'application/pdf');
+
+insEl.inputInsert.addEventListener('change', (e)=>{
+  const f = e.target.files[0];
+  if(f) handleInsertInsertFile(f);
+});
+setupDrag(insEl.dzInsert, handleInsertInsertFile, 'application/pdf');
+
+async function handleInsertBaseFile(file){
+  clearError();
+  if(file.type !== 'application/pdf'){
+    showError('Berkas harus berformat PDF.');
+    return;
+  }
+  try{
+    setStatus('Membaca PDF utama...');
+    const buf = await file.arrayBuffer();
+    const { PDFDocument } = PDFLib;
+    const doc = await PDFDocument.load(buf.slice(0));
+    insState.baseBytes = buf;
+    insState.baseNumPages = doc.getPageCount();
+    insState.insertBytes = null;
+    insState.insertNumPages = 0;
+
+    insEl.baseFilename.textContent = file.name;
+    insEl.baseInfo.textContent = `Dokumen ini punya ${insState.baseNumPages} halaman.`;
+    populateInsertPositions();
+    insEl.insertFilename.textContent = '';
+    insEl.insertInfo.textContent = 'Belum ada PDF yang dipilih untuk disisipkan.';
+    insEl.uploadCard.style.display = 'none';
+    insEl.editorCard.style.display = '';
+    setStatus('');
+  }catch(err){
+    console.error(err);
+    showError('Gagal membaca PDF utama. Pastikan berkas tidak rusak.');
+    setStatus('');
+  }
+}
+
+function populateInsertPositions(){
+  insEl.positionSelect.innerHTML = '';
+  const n = insState.baseNumPages;
+  const addOption = (value, label)=>{
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = label;
+    insEl.positionSelect.appendChild(opt);
+  };
+  addOption(0, 'Di awal (sebelum halaman 1)');
+  for(let i=1;i<n;i++){
+    addOption(i, `Setelah halaman ${i}`);
+  }
+  addOption(n, `Di akhir (setelah halaman ${n})`);
+}
+
+async function handleInsertInsertFile(file){
+  clearError();
+  if(file.type !== 'application/pdf'){
+    showError('Berkas harus berformat PDF.');
+    return;
+  }
+  try{
+    setStatus('Membaca PDF yang akan disisipkan...');
+    const buf = await file.arrayBuffer();
+    const { PDFDocument } = PDFLib;
+    const doc = await PDFDocument.load(buf.slice(0));
+    insState.insertBytes = buf;
+    insState.insertNumPages = doc.getPageCount();
+    insState.insertFilename = file.name;
+    insEl.insertFilename.textContent = file.name;
+    insEl.insertInfo.textContent = `${insState.insertNumPages} halaman dari "${file.name}" akan disisipkan.`;
+    setStatus('');
+  }catch(err){
+    console.error(err);
+    showError('Gagal membaca PDF yang akan disisipkan. Pastikan berkas tidak rusak.');
+    setStatus('');
+  }
+}
+
+insEl.changeBaseBtn.addEventListener('click', ()=>{
+  insEl.editorCard.style.display = 'none';
+  insEl.uploadCard.style.display = '';
+  insEl.inputBase.value = '';
+  insEl.inputInsert.value = '';
+  insState.baseBytes = null;
+  insState.baseNumPages = 0;
+  insState.insertBytes = null;
+  insState.insertNumPages = 0;
+});
+
+insEl.downloadBtn.addEventListener('click', async ()=>{
+  clearError();
+  if(!insState.baseBytes){
+    showError('Belum ada PDF utama.');
+    return;
+  }
+  if(!insState.insertBytes){
+    showError('Pilih dulu PDF yang akan disisipkan.');
+    return;
+  }
+  insEl.downloadBtn.disabled = true;
+  setStatus('Menyisipkan dokumen & menyusun PDF hasil...');
+  try{
+    const { PDFDocument } = PDFLib;
+    const baseDoc = await PDFDocument.load(insState.baseBytes.slice(0));
+    const insertDoc = await PDFDocument.load(insState.insertBytes.slice(0));
+
+    const position = parseInt(insEl.positionSelect.value, 10);
+    const copiedPages = await baseDoc.copyPages(insertDoc, insertDoc.getPageIndices());
+
+    let at = position;
+    for(const page of copiedPages){
+      baseDoc.insertPage(at, page);
+      at++;
+    }
+
+    const outBytes = await baseDoc.save();
+    const blob = new Blob([outBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'pdf-tersisip.pdf';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+
+    setStatus(`Selesai! ${copiedPages.length} halaman disisipkan, PDF hasil sudah diunduh.`);
+  }catch(err){
+    console.error(err);
+    showError('Gagal menyisipkan dokumen. Coba lagi.');
+    setStatus('');
+  }finally{
+    insEl.downloadBtn.disabled = false;
+  }
+});
+
+// ================== KONVERSI WORD / EXCEL KE PDF ==================
+const convertState = {
+  kind: null,       // 'docx' | 'xlsx'
+  outFilename: 'hasil-konversi.pdf',
+};
+
+const cvEl = {
+  input: document.getElementById('input-convert'),
+  dz: document.getElementById('dz-convert'),
+  filename: document.getElementById('convert-filename'),
+  uploadCard: document.getElementById('convertUploadCard'),
+  previewCard: document.getElementById('convertPreviewCard'),
+  info: document.getElementById('convertInfo'),
+  preview: document.getElementById('convertPreview'),
+  changeBtn: document.getElementById('convertChangeBtn'),
+  downloadBtn: document.getElementById('downloadConvertedBtn'),
+};
+
+cvEl.input.addEventListener('change', (e)=>{
+  const f = e.target.files[0];
+  if(f) handleConvertFile(f);
+});
+setupDrag(cvEl.dz, handleConvertFile, '');
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+async function handleConvertFile(file){
+  clearError();
+  const name = file.name.toLowerCase();
+  if(name.endsWith('.docx')){
+    await convertDocxToPreview(file);
+  } else if(name.endsWith('.xlsx') || name.endsWith('.xls')){
+    await convertXlsxToPreview(file);
+  } else {
+    showError('Format tidak didukung. Pilih file .docx, .xlsx, atau .xls. (Format lama .doc belum didukung.)');
+  }
+}
+
+async function convertDocxToPreview(file){
+  try{
+    setStatus('Membaca dokumen Word...');
+    const buf = await file.arrayBuffer();
+    const result = await mammoth.convertToHtml({ arrayBuffer: buf });
+    cvEl.preview.innerHTML = result.value || '<p><em>(Dokumen kosong)</em></p>';
+    convertState.kind = 'docx';
+    convertState.outFilename = file.name.replace(/\.docx$/i, '') + '.pdf';
+    cvEl.filename.textContent = file.name;
+    cvEl.info.textContent = 'Dokumen Word berhasil dibaca. Periksa pratinjau di bawah, lalu unduh sebagai PDF.';
+    showConvertPreview();
+  }catch(err){
+    console.error(err);
+    showError('Gagal membaca file Word. Pastikan berkas .docx tidak rusak.');
+    setStatus('');
+  }
+}
+
+async function convertXlsxToPreview(file){
+  try{
+    setStatus('Membaca file Excel...');
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array' });
+    let html = '';
+    wb.SheetNames.forEach((sheetName)=>{
+      const sheet = wb.Sheets[sheetName];
+      html += `<h3>${escapeHtml(sheetName)}</h3>`;
+      html += XLSX.utils.sheet_to_html(sheet, { editable: false });
+    });
+    cvEl.preview.innerHTML = html || '<p><em>(Berkas kosong)</em></p>';
+    convertState.kind = 'xlsx';
+    convertState.outFilename = file.name.replace(/\.xlsx?$/i, '') + '.pdf';
+    cvEl.filename.textContent = file.name;
+    cvEl.info.textContent = `${wb.SheetNames.length} sheet ditemukan. Periksa pratinjau di bawah, lalu unduh sebagai PDF.`;
+    showConvertPreview();
+  }catch(err){
+    console.error(err);
+    showError('Gagal membaca file Excel. Pastikan berkas tidak rusak.');
+    setStatus('');
+  }
+}
+
+function showConvertPreview(){
+  cvEl.uploadCard.style.display = 'none';
+  cvEl.previewCard.style.display = '';
+  setStatus('');
+}
+
+cvEl.changeBtn.addEventListener('click', ()=>{
+  cvEl.previewCard.style.display = 'none';
+  cvEl.uploadCard.style.display = '';
+  cvEl.input.value = '';
+  cvEl.filename.textContent = '';
+  cvEl.preview.innerHTML = '';
+  convertState.kind = null;
+});
+
+cvEl.downloadBtn.addEventListener('click', async ()=>{
+  clearError();
+  cvEl.downloadBtn.disabled = true;
+  setStatus('Membuat PDF dari pratinjau...');
+  try{
+    const opt = {
+      margin: 10,
+      filename: convertState.outFilename || 'hasil-konversi.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: {
+        unit: 'mm',
+        format: 'a4',
+        orientation: convertState.kind === 'xlsx' ? 'landscape' : 'portrait',
+      },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+    };
+    await html2pdf().set(opt).from(cvEl.preview).save();
+    setStatus('Selesai! PDF hasil konversi sudah diunduh.');
+  }catch(err){
+    console.error(err);
+    showError('Gagal membuat PDF. Coba lagi.');
+    setStatus('');
+  }finally{
+    cvEl.downloadBtn.disabled = false;
   }
 });
 
