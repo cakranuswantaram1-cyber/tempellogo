@@ -272,6 +272,15 @@
   .logo-layer.selected{outline-color:var(--gold);}
   .logo-layer:active{cursor:grabbing;}
 
+  .crop-box{
+    position:absolute;
+    cursor:grab;
+    border:2px dashed var(--gold);
+    background:rgba(184,145,47,0.14);
+    touch-action:none;
+  }
+  .crop-box:active{cursor:grabbing;}
+
   .handle{
     position:absolute;
     width:14px;height:14px;
@@ -429,6 +438,22 @@
     padding:5px 9px;
   }
   #convertPreview img{max-width:100%;}
+
+  .images-list{display:flex; flex-direction:column; gap:8px; margin-bottom:16px;}
+  .image-item{
+    display:flex; align-items:center; gap:12px;
+    border:1px solid var(--line); border-radius:8px; padding:8px 10px; background:#FBFAF6;
+  }
+  .image-item img{width:52px; height:52px; object-fit:cover; border-radius:6px; border:1px solid var(--line); flex:none;}
+  .image-item .name{flex:1; font-size:12.5px; font-weight:600; color:var(--ink); word-break:break-all; min-width:0;}
+  .image-item .order-btns{display:flex; gap:4px; flex:none;}
+  .image-item .order-btns button{
+    width:26px;height:26px; border-radius:6px; border:1px solid var(--line); background:#fff;
+    cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; color:var(--navy-deep);
+  }
+  .image-item .order-btns button:hover{background:#F2F5FA; border-color:var(--navy);}
+  .image-item .order-btns button:disabled{opacity:0.35; cursor:not-allowed;}
+  .image-item .remove-btn{color:var(--danger);}
 </style>
 </head>
 <body>
@@ -445,6 +470,8 @@
     <button class="tool-tab" id="tabDelete" type="button">🗑️ Hapus Halaman</button>
     <button class="tool-tab" id="tabInsert" type="button">📎 Sisipkan PDF</button>
     <button class="tool-tab" id="tabConvert" type="button">🔄 Word/Excel ke PDF</button>
+    <button class="tool-tab" id="tabImages" type="button">🖼️ Gambar ke PDF</button>
+    <button class="tool-tab" id="tabCrop" type="button">✂️ Crop PDF</button>
   </div>
 
   <div class="error-banner" id="errorBanner"></div>
@@ -638,6 +665,85 @@
     </div>
 
   </div><!-- /viewConvert -->
+
+  <div id="viewImages" style="display:none;">
+
+    <div class="card">
+      <h2>Unggah gambar (JPG/PNG)</h2>
+      <p class="sub">Pilih beberapa gambar sekaligus — satu gambar jadi satu halaman PDF, urutan bisa diatur sebelum digabung. Diproses langsung di browser.</p>
+      <div class="drop-row" style="grid-template-columns:1fr;">
+        <label class="dropzone" id="dz-images">
+          <input type="file" id="input-images" accept="image/png,image/jpeg" multiple>
+          <span class="icon">🖼️</span>
+          <span class="label">Pilih atau seret gambar JPG/PNG</span>
+          <span class="hint">Bisa pilih lebih dari satu file sekaligus</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card" id="imagesListCard" style="display:none;">
+      <h2>Urutan halaman</h2>
+      <p class="sub" id="imagesInfo"></p>
+      <div id="imagesList" class="images-list"></div>
+      <div class="hint-row">
+        <span class="note">Setiap gambar jadi satu halaman, ukuran menyesuaikan gambar (muat dalam A4).</span>
+        <button class="btn ghost" id="imagesAddMoreBtn" type="button">+ Tambah gambar</button>
+        <button class="btn gold" id="downloadImagesBtn" type="button">⬇ Gabung &amp; Unduh PDF</button>
+      </div>
+    </div>
+
+  </div><!-- /viewImages -->
+
+  <div id="viewCrop" style="display:none;">
+
+    <div class="card" id="cropUploadCard">
+      <h2>Unggah PDF</h2>
+      <p class="sub">Pilih file PDF yang mau dipangkas. Cocok untuk membuang ruang putih kosong di sekeliling isi (misalnya hasil cetak yang halamannya kebesaran).</p>
+      <div class="drop-row" style="grid-template-columns:1fr;">
+        <label class="dropzone" id="dz-crop-pdf">
+          <input type="file" id="input-crop-pdf" accept="application/pdf">
+          <span class="icon">📄</span>
+          <span class="label">Pilih file PDF</span>
+          <span class="hint">atau seret ke sini</span>
+          <div class="filename" id="crop-pdf-filename"></div>
+        </label>
+      </div>
+    </div>
+
+    <div class="card editor-card" id="cropEditorCard" style="display:none;">
+      <h2>Atur area crop</h2>
+      <p class="sub">Kotak putus-putus emas menandai bagian yang akan DISIMPAN — di luar kotak akan dibuang. Geser kotak untuk memindah, tarik titik emas di sudut kanan-bawah untuk mengubah ukuran. Ini hanya memangkas batas halaman, isi di dalamnya tidak digambar ulang sama sekali — jadi kualitasnya tetap 100% sama seperti berkas aslinya.</p>
+
+      <div class="toolbar">
+        <div class="group">
+          <label for="cropPageSelect">Halaman</label>
+          <select id="cropPageSelect"></select>
+        </div>
+        <button class="btn ghost" id="cropAutoBtn" type="button">🔍 Deteksi Otomatis</button>
+        <button class="btn ghost" id="cropResetBtn" type="button">↺ Reset (halaman penuh)</button>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-soft);">
+          <input type="checkbox" id="cropAllPages" checked>
+          Terapkan ke semua halaman
+        </label>
+      </div>
+
+      <div class="stage-outer">
+        <div class="stage" id="cropStage">
+          <canvas id="cropCanvas"></canvas>
+          <div class="crop-box" id="cropBoxEl">
+            <div class="handle" id="cropResizeHandle"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hint-row">
+        <span class="note" id="cropNote"></span>
+        <button class="btn ghost" id="cropChangePdfBtn" type="button">Ganti PDF</button>
+        <button class="btn gold" id="downloadCroppedBtn" type="button">✂️ Pangkas &amp; Unduh PDF</button>
+      </div>
+    </div>
+
+  </div><!-- /viewCrop -->
 
   <footer class="status" id="statusLine"></footer>
 </div>
@@ -1280,6 +1386,8 @@ const tabs = [
   { btn: document.getElementById('tabDelete'), view: document.getElementById('viewDelete') },
   { btn: document.getElementById('tabInsert'), view: document.getElementById('viewInsert') },
   { btn: document.getElementById('tabConvert'), view: document.getElementById('viewConvert') },
+  { btn: document.getElementById('tabImages'), view: document.getElementById('viewImages') },
+  { btn: document.getElementById('tabCrop'), view: document.getElementById('viewCrop') },
 ];
 function activateTab(active){
   clearError(); setStatus('');
@@ -1755,6 +1863,493 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').catch(()=>{});
   });
 }
+
+// ================== GAMBAR (JPG/PNG) KE PDF ==================
+const imgState = {
+  items: [], // { file, name, mime, dataUrl, id }
+};
+
+const imgEl = {
+  input: document.getElementById('input-images'),
+  dz: document.getElementById('dz-images'),
+  listCard: document.getElementById('imagesListCard'),
+  list: document.getElementById('imagesList'),
+  info: document.getElementById('imagesInfo'),
+  addMoreBtn: document.getElementById('imagesAddMoreBtn'),
+  downloadBtn: document.getElementById('downloadImagesBtn'),
+};
+
+imgEl.input.addEventListener('change', (e)=>{
+  addImageFiles(e.target.files);
+  imgEl.input.value = '';
+});
+
+['dragenter','dragover'].forEach(evt=>{
+  imgEl.dz.addEventListener(evt, (e)=>{ e.preventDefault(); imgEl.dz.classList.add('drag'); });
+});
+['dragleave','drop'].forEach(evt=>{
+  imgEl.dz.addEventListener(evt, (e)=>{ e.preventDefault(); imgEl.dz.classList.remove('drag'); });
+});
+imgEl.dz.addEventListener('drop', (e)=>{
+  const files = Array.from(e.dataTransfer.files).filter(f=> f.type==='image/png' || f.type==='image/jpeg');
+  if(files.length){ addImageFiles(files); }
+  else showError('Jenis berkas tidak sesuai. Gunakan JPG atau PNG.');
+});
+
+imgEl.addMoreBtn.addEventListener('click', ()=> imgEl.input.click());
+
+function addImageFiles(fileList){
+  clearError();
+  const files = Array.from(fileList).filter(f=> f.type==='image/png' || f.type==='image/jpeg');
+  if(!files.length){
+    showError('Pilih berkas berformat JPG atau PNG.');
+    return;
+  }
+  let pending = files.length;
+  files.forEach(file=>{
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      imgState.items.push({
+        id: 'img_' + Math.random().toString(36).slice(2),
+        file,
+        name: file.name,
+        mime: file.type,
+        dataUrl: ev.target.result,
+      });
+      pending--;
+      if(pending === 0) renderImagesList();
+    };
+    reader.onerror = ()=>{
+      pending--;
+      showError('Gagal membaca salah satu gambar.');
+      if(pending === 0) renderImagesList();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderImagesList(){
+  imgEl.list.innerHTML = '';
+  imgState.items.forEach((item, idx)=>{
+    const row = document.createElement('div');
+    row.className = 'image-item';
+
+    const thumb = document.createElement('img');
+    thumb.src = item.dataUrl;
+    thumb.alt = item.name;
+
+    const name = document.createElement('div');
+    name.className = 'name';
+    name.textContent = `${idx+1}. ${item.name}`;
+
+    const orderBtns = document.createElement('div');
+    orderBtns.className = 'order-btns';
+
+    const upBtn = document.createElement('button');
+    upBtn.type = 'button';
+    upBtn.textContent = '↑';
+    upBtn.disabled = idx === 0;
+    upBtn.addEventListener('click', ()=>{
+      [imgState.items[idx-1], imgState.items[idx]] = [imgState.items[idx], imgState.items[idx-1]];
+      renderImagesList();
+    });
+
+    const downBtn = document.createElement('button');
+    downBtn.type = 'button';
+    downBtn.textContent = '↓';
+    downBtn.disabled = idx === imgState.items.length - 1;
+    downBtn.addEventListener('click', ()=>{
+      [imgState.items[idx+1], imgState.items[idx]] = [imgState.items[idx], imgState.items[idx+1]];
+      renderImagesList();
+    });
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'remove-btn';
+    removeBtn.textContent = '✕';
+    removeBtn.addEventListener('click', ()=>{
+      imgState.items.splice(idx, 1);
+      renderImagesList();
+    });
+
+    orderBtns.appendChild(upBtn);
+    orderBtns.appendChild(downBtn);
+    orderBtns.appendChild(removeBtn);
+
+    row.appendChild(thumb);
+    row.appendChild(name);
+    row.appendChild(orderBtns);
+    imgEl.list.appendChild(row);
+  });
+
+  imgEl.info.textContent = imgState.items.length
+    ? `${imgState.items.length} gambar siap digabung, dalam urutan di atas.`
+    : 'Belum ada gambar.';
+  imgEl.listCard.style.display = imgState.items.length ? '' : 'none';
+}
+
+imgEl.downloadBtn.addEventListener('click', async ()=>{
+  clearError();
+  if(!imgState.items.length){
+    showError('Tambahkan minimal satu gambar dulu.');
+    return;
+  }
+  imgEl.downloadBtn.disabled = true;
+  setStatus('Menyusun PDF dari gambar...');
+  try{
+    const { PDFDocument } = PDFLib;
+    const pdfDoc = await PDFDocument.create();
+    const A4_W = 595.28, A4_H = 841.89;
+    const MARGIN = 24;
+
+    for(const item of imgState.items){
+      const buf = await item.file.arrayBuffer();
+      const embedded = item.mime === 'image/png'
+        ? await pdfDoc.embedPng(buf)
+        : await pdfDoc.embedJpg(buf);
+
+      const availW = A4_W - MARGIN*2;
+      const availH = A4_H - MARGIN*2;
+      const scale = Math.min(availW / embedded.width, availH / embedded.height, 1);
+      const drawW = embedded.width * scale;
+      const drawH = embedded.height * scale;
+
+      const page = pdfDoc.addPage([A4_W, A4_H]);
+      page.drawImage(embedded, {
+        x: (A4_W - drawW) / 2,
+        y: (A4_H - drawH) / 2,
+        width: drawW,
+        height: drawH,
+      });
+    }
+
+    const outBytes = await pdfDoc.save();
+    const blob = new Blob([outBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'gambar-ke-pdf.pdf';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+
+    setStatus(`Selesai! ${imgState.items.length} gambar digabung jadi PDF dan sudah diunduh.`);
+  }catch(err){
+    console.error(err);
+    showError('Gagal membuat PDF dari gambar. Coba lagi.');
+    setStatus('');
+  }finally{
+    imgEl.downloadBtn.disabled = false;
+  }
+});
+
+// ================== CROP PDF (pangkas batas halaman, TANPA render ulang isi) ==================
+// Prinsip penting: alat ini TIDAK mengubah isi PDF (teks/garis/gambar di
+// dalamnya tetap vektor persis seperti aslinya). Yang diubah cuma "bingkai"
+// halaman (MediaBox & CropBox) supaya bagian di luar kotak pilihan tidak
+// ikut tercetak/terlihat lagi. Karena itu kualitasnya tidak mungkin turun.
+const CROP_SCALE = 1.3; // px per titik PDF saat pratinjau dirender (untuk halaman ukuran normal)
+const CROP_MAX_DIM = 2200; // batas aman lebar/tinggi kanvas dalam piksel, supaya halaman raksasa (poster/A0) tidak bikin kanvas kosong/blank di HP Android
+
+const cropState = {
+  pdfBytes: null,
+  pdfDoc: null,        // dokumen pdf.js, khusus untuk pratinjau
+  numPages: 0,
+  currentPage: 1,
+  pageViewports: {},   // { pageNum: {pxW,pxH} }
+  box: { x:0, y:0, w:100, h:100 }, // posisi & ukuran kotak crop, dalam px kanvas halaman AKTIF
+};
+
+const cropEl = {
+  inputPdf: document.getElementById('input-crop-pdf'),
+  dzPdf: document.getElementById('dz-crop-pdf'),
+  filename: document.getElementById('crop-pdf-filename'),
+  uploadCard: document.getElementById('cropUploadCard'),
+  editorCard: document.getElementById('cropEditorCard'),
+  pageSelect: document.getElementById('cropPageSelect'),
+  autoBtn: document.getElementById('cropAutoBtn'),
+  resetBtn: document.getElementById('cropResetBtn'),
+  allPages: document.getElementById('cropAllPages'),
+  stage: document.getElementById('cropStage'),
+  canvas: document.getElementById('cropCanvas'),
+  boxEl: document.getElementById('cropBoxEl'),
+  handle: document.getElementById('cropResizeHandle'),
+  note: document.getElementById('cropNote'),
+  changePdfBtn: document.getElementById('cropChangePdfBtn'),
+  downloadBtn: document.getElementById('downloadCroppedBtn'),
+};
+
+cropEl.inputPdf.addEventListener('change', (e)=>{
+  const f = e.target.files[0];
+  if(f) handleCropPdfFile(f);
+});
+setupDrag(cropEl.dzPdf, handleCropPdfFile, 'application/pdf');
+
+async function handleCropPdfFile(file){
+  clearError();
+  const looksLikePdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name || '');
+  if(!looksLikePdf){ showError('Berkas harus berformat PDF.'); return; }
+  try{
+    setStatus('Membaca PDF...');
+    const buf = await file.arrayBuffer();
+    cropState.pdfBytes = buf;
+    setStatus('Memuat mesin pembaca PDF... (jika koneksi lambat, ini bisa makan waktu)');
+    const loadingTask = pdfjsLib.getDocument({ data: buf.slice(0) });
+    const timeoutMs = 25000;
+    const timeout = new Promise((_, reject)=> setTimeout(()=> reject(new Error('TIMEOUT')), timeoutMs));
+    cropState.pdfDoc = await Promise.race([loadingTask.promise, timeout]);
+    cropState.numPages = cropState.pdfDoc.numPages;
+    cropState.currentPage = 1;
+    cropState.pageViewports = {};
+    cropEl.filename.textContent = file.name;
+    populateCropPageSelect();
+    cropEl.uploadCard.style.display = 'none';
+    cropEl.editorCard.style.display = '';
+    await renderCropPage(1);
+    setStatus('');
+  }catch(err){
+    console.error(err);
+    if(err && err.message === 'TIMEOUT'){
+      showError('Gagal memuat mesin pembaca PDF, sepertinya koneksi internet terlalu lambat/putus. Coba pakai WiFi atau sinyal yang lebih baik, lalu ulangi.');
+    }else{
+      showError('Gagal membaca PDF. Pastikan berkas tidak rusak, tidak terkunci password, dan koneksi internet stabil.');
+    }
+    setStatus('');
+  }
+}
+
+function populateCropPageSelect(){
+  cropEl.pageSelect.innerHTML = '';
+  for(let i=1;i<=cropState.numPages;i++){
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = `Halaman ${i} dari ${cropState.numPages}`;
+    cropEl.pageSelect.appendChild(opt);
+  }
+}
+cropEl.pageSelect.addEventListener('change', ()=>{
+  renderCropPage(+cropEl.pageSelect.value);
+});
+cropEl.changePdfBtn.addEventListener('click', ()=>{
+  cropEl.editorCard.style.display = 'none';
+  cropEl.uploadCard.style.display = '';
+  cropEl.inputPdf.value = '';
+});
+
+async function renderCropPage(pageNum){
+  cropState.currentPage = pageNum;
+  cropEl.pageSelect.value = pageNum;
+  const page = await cropState.pdfDoc.getPage(pageNum);
+  // Halaman ukuran normal (A4/F4/Legal dst.) dirender di CROP_SCALE seperti biasa.
+  // Tapi kalau halamannya raksasa (poster, A0, silsilah keluarga, dll.), turunkan skala
+  // supaya lebar/tinggi kanvas tidak melebihi CROP_MAX_DIM piksel — kanvas yang kegedean
+  // sering gagal digambar (tampil kosong/blank) di WebView Android.
+  const baseViewport = page.getViewport({ scale: 1 });
+  let effectiveScale = CROP_SCALE;
+  const projectedW = baseViewport.width * CROP_SCALE;
+  const projectedH = baseViewport.height * CROP_SCALE;
+  if(projectedW > CROP_MAX_DIM || projectedH > CROP_MAX_DIM){
+    effectiveScale = Math.min(CROP_MAX_DIM / baseViewport.width, CROP_MAX_DIM / baseViewport.height);
+  }
+  const viewport = page.getViewport({ scale: effectiveScale });
+  const canvas = cropEl.canvas;
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  cropEl.stage.style.width = viewport.width + 'px';
+  cropEl.stage.style.height = viewport.height + 'px';
+  const ctx = canvas.getContext('2d');
+  await page.render({ canvasContext: ctx, viewport }).promise;
+  cropState.pageViewports[pageNum] = { pxW: viewport.width, pxH: viewport.height };
+
+  // default: kotak penuh 1 halaman (belum dipangkas) tiap ganti halaman
+  cropState.box = { x:0, y:0, w:viewport.width, h:viewport.height };
+  applyCropBoxToDom();
+  cropEl.note.textContent = '';
+}
+
+function applyCropBoxToDom(){
+  const b = cropState.box;
+  cropEl.boxEl.style.left = b.x + 'px';
+  cropEl.boxEl.style.top = b.y + 'px';
+  cropEl.boxEl.style.width = b.w + 'px';
+  cropEl.boxEl.style.height = b.h + 'px';
+}
+
+// ---------- Deteksi otomatis ruang kosong di sekeliling isi ----------
+cropEl.autoBtn.addEventListener('click', ()=>{
+  clearError();
+  const canvas = cropEl.canvas;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  let imgData;
+  try{
+    imgData = ctx.getImageData(0,0,W,H).data;
+  }catch(err){
+    showError('Gagal membaca isi halaman untuk deteksi otomatis.');
+    return;
+  }
+  // Warna latar diasumsikan dari warna pojok kiri-atas halaman.
+  const bg = { r: imgData[0], g: imgData[1], b: imgData[2] };
+  const TOL = 12;      // toleransi warna, biar antialiasing tipis tidak dianggap "isi"
+  const STEP = 2;      // loncat tiap 2px biar cepat, cukup akurat untuk deteksi margin
+  let minX=W, minY=H, maxX=0, maxY=0, found=false;
+  for(let y=0; y<H; y+=STEP){
+    for(let x=0; x<W; x+=STEP){
+      const i = (y*W + x) * 4;
+      const dr = Math.abs(imgData[i]-bg.r), dg = Math.abs(imgData[i+1]-bg.g), db = Math.abs(imgData[i+2]-bg.b);
+      if(dr>TOL || dg>TOL || db>TOL){
+        found = true;
+        if(x<minX) minX=x;
+        if(x>maxX) maxX=x;
+        if(y<minY) minY=y;
+        if(y>maxY) maxY=y;
+      }
+    }
+  }
+  if(!found){
+    showError('Tidak ada isi yang terdeteksi otomatis (halaman polos?). Atur kotak secara manual saja.');
+    return;
+  }
+  const pad = 8; // sedikit ruang napas di sekeliling konten
+  minX = Math.max(0, minX - pad);
+  minY = Math.max(0, minY - pad);
+  maxX = Math.min(W, maxX + pad);
+  maxY = Math.min(H, maxY + pad);
+  cropState.box = { x:minX, y:minY, w:maxX-minX, h:maxY-minY };
+  applyCropBoxToDom();
+  cropEl.note.textContent = 'Area terdeteksi otomatis — geser/tarik kalau masih perlu disesuaikan.';
+});
+
+cropEl.resetBtn.addEventListener('click', ()=>{
+  const vp = cropState.pageViewports[cropState.currentPage];
+  if(!vp) return;
+  cropState.box = { x:0, y:0, w:vp.pxW, h:vp.pxH };
+  applyCropBoxToDom();
+  cropEl.note.textContent = '';
+});
+
+// ---------- Geser kotak crop (pola sama seperti kotak logo) ----------
+let cropDragState = null;
+cropEl.boxEl.addEventListener('pointerdown', (e)=>{
+  if(e.target === cropEl.handle) return; // biar resize handle punya listener sendiri
+  e.preventDefault();
+  cropEl.boxEl.setPointerCapture(e.pointerId);
+  cropDragState = { startX:e.clientX, startY:e.clientY, origX:cropState.box.x, origY:cropState.box.y };
+});
+cropEl.boxEl.addEventListener('pointermove', (e)=>{
+  if(!cropDragState) return;
+  const vp = cropState.pageViewports[cropState.currentPage];
+  const dx = e.clientX - cropDragState.startX;
+  const dy = e.clientY - cropDragState.startY;
+  let nx = cropDragState.origX + dx;
+  let ny = cropDragState.origY + dy;
+  nx = Math.max(0, Math.min(nx, vp.pxW - cropState.box.w));
+  ny = Math.max(0, Math.min(ny, vp.pxH - cropState.box.h));
+  cropState.box.x = nx;
+  cropState.box.y = ny;
+  applyCropBoxToDom();
+});
+function endCropDrag(e){
+  if(cropDragState){
+    try{ cropEl.boxEl.releasePointerCapture(e.pointerId); }catch(_){}
+    cropDragState = null;
+  }
+}
+cropEl.boxEl.addEventListener('pointerup', endCropDrag);
+cropEl.boxEl.addEventListener('pointercancel', endCropDrag);
+
+// ---------- Ubah ukuran kotak crop via titik sudut ----------
+let cropResizeState = null;
+cropEl.handle.addEventListener('pointerdown', (e)=>{
+  e.preventDefault();
+  e.stopPropagation();
+  cropEl.handle.setPointerCapture(e.pointerId);
+  cropResizeState = { startX:e.clientX, startY:e.clientY, origW:cropState.box.w, origH:cropState.box.h };
+});
+cropEl.handle.addEventListener('pointermove', (e)=>{
+  if(!cropResizeState) return;
+  const vp = cropState.pageViewports[cropState.currentPage];
+  const dx = e.clientX - cropResizeState.startX;
+  const dy = e.clientY - cropResizeState.startY;
+  let newW = Math.max(20, cropResizeState.origW + dx);
+  let newH = Math.max(20, cropResizeState.origH + dy);
+  newW = Math.min(newW, vp.pxW - cropState.box.x);
+  newH = Math.min(newH, vp.pxH - cropState.box.y);
+  cropState.box.w = newW;
+  cropState.box.h = newH;
+  applyCropBoxToDom();
+});
+function endCropResize(e){
+  if(cropResizeState){
+    try{ cropEl.handle.releasePointerCapture(e.pointerId); }catch(_){}
+    cropResizeState = null;
+  }
+}
+cropEl.handle.addEventListener('pointerup', endCropResize);
+cropEl.handle.addEventListener('pointercancel', endCropResize);
+
+// ---------- Terapkan crop & unduh ----------
+// Hanya mengganti MediaBox & CropBox halaman lewat pdf-lib — TIDAK pernah
+// menggambar ulang / merender ulang isinya jadi gambar, jadi teks & garis
+// vektor di dalamnya tetap 100% sama tajamnya seperti berkas asli.
+cropEl.downloadBtn.addEventListener('click', async ()=>{
+  clearError();
+  const vp = cropState.pageViewports[cropState.currentPage];
+  if(!vp){ showError('Belum ada halaman yang dirender.'); return; }
+
+  // Simpan posisi kotak sebagai FRAKSI (0..1) dari halaman yang sedang
+  // ditampilkan, supaya kalau diterapkan ke banyak halaman yang ukurannya
+  // beda-beda, proporsinya tetap benar di setiap halaman.
+  const fx0 = cropState.box.x / vp.pxW;
+  const fy0 = cropState.box.y / vp.pxH;
+  const fx1 = (cropState.box.x + cropState.box.w) / vp.pxW;
+  const fy1 = (cropState.box.y + cropState.box.h) / vp.pxH;
+
+  cropEl.downloadBtn.disabled = true;
+  setStatus('Memangkas batas halaman...');
+  try{
+    const { PDFDocument } = PDFLib;
+    const pdfDoc = await PDFDocument.load(cropState.pdfBytes.slice(0));
+    const pages = pdfDoc.getPages();
+    const applyToAll = cropEl.allPages.checked;
+    const targetIdx = applyToAll ? pages.map((_,i)=>i) : [cropState.currentPage - 1];
+
+    for(const idx of targetIdx){
+      const page = pages[idx];
+      const { width:W, height:H } = page.getSize();
+      const left = fx0 * W;
+      const right = fx1 * W;
+      const topFromAtas = fy0 * H;
+      const bottomFromAtas = fy1 * H;
+      const cropX = left;
+      const cropY = H - bottomFromAtas;   // konversi ke koordinat PDF (origin kiri-bawah)
+      const cropW = Math.max(1, right - left);
+      const cropH = Math.max(1, bottomFromAtas - topFromAtas);
+      page.setCropBox(cropX, cropY, cropW, cropH);
+      page.setMediaBox(cropX, cropY, cropW, cropH);
+    }
+
+    const outBytes = await pdfDoc.save();
+    const blob = new Blob([outBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'pdf-dipangkas.pdf';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+
+    setStatus(`Selesai! ${applyToAll ? 'Semua halaman' : 'Halaman ' + cropState.currentPage} sudah dipangkas — isinya tidak digambar ulang, jadi kualitasnya tetap sama seperti PDF asli.`);
+  }catch(err){
+    console.error(err);
+    showError('Gagal memangkas PDF. Coba lagi.');
+    setStatus('');
+  }finally{
+    cropEl.downloadBtn.disabled = false;
+  }
+});
 </script>
 </body>
 </html>
