@@ -635,6 +635,27 @@ document.documentElement.setAttribute('data-theme',t);}catch(e){document.documen
   .esp-ov{position:absolute;inset:0;z-index:30;cursor:crosshair;touch-action:none;background:rgba(184,145,47,.07);outline:2px dashed var(--gold);outline-offset:-2px}
   .esp-box{position:absolute;border:2px dashed #C0392B;background:rgba(192,57,43,.12);pointer-events:none}
 
+  /* ===== Sumber TTD: tab pilihan ===== */
+  .sg-src-tabs{display:flex;gap:6px;margin-bottom:14px;border-bottom:2px solid var(--line);padding-bottom:0;}
+  .sg-src-tab{background:none;border:none;padding:8px 16px;font:inherit;font-size:13.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;border-radius:6px 6px 0 0;transition:color .15s,border-color .15s;}
+  .sg-src-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .sg-src-tab:hover:not(.active){color:var(--ink);background:var(--accent-soft);}
+
+  /* ===== Barcode QR tanda tangan ===== */
+  .sg-qr-grid{display:grid;grid-template-columns:1fr 240px;gap:18px;align-items:start;}
+  @media(max-width:640px){.sg-qr-grid{grid-template-columns:1fr;}}
+  .sg-qr-form label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin:10px 0 4px;}
+  .sg-qr-form label.sg-qr-chk{display:flex;gap:8px;align-items:center;font-weight:500;margin:8px 0 0;color:var(--ink);}
+  .sg-qr-form input[type=text],.sg-qr-form textarea{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--paper-card);color:var(--ink);font:inherit;font-size:13.5px;}
+  .sg-qr-form textarea{resize:vertical;}
+  .sg-qr-prev{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;justify-content:center;}
+  .sg-qr-prev canvas{max-width:100%;height:auto;display:block;}
+  /* ===== Draw Pad tanda tangan (lembar kertas putih) ===== */
+  .sg-draw-wrap{background:#fff;border:2px solid var(--line-strong);border-radius:var(--radius);overflow:hidden;cursor:crosshair;touch-action:none;position:relative;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;box-shadow:0 2px 10px rgba(0,0,0,.18);padding:0;}
+  .sg-draw-wrap canvas{display:block;touch-action:none;position:relative;z-index:2;}
+  .sg-draw-wrap::before{content:'Tanda tangan di sini';position:absolute;left:0;right:0;top:76%;text-align:center;font-size:12.5px;color:#aab2bf;pointer-events:none;z-index:1;letter-spacing:.3px;}
+  .sg-draw-wrap::after{content:'';position:absolute;left:6%;right:6%;top:72%;border-top:1.5px dashed #c5ccd8;pointer-events:none;z-index:1;}
+  .sg-draw-wrap.has-ink::before{display:none;}
   /* ===== Menu Tanda Tangan ===== */
   .sg-preview{
     display:flex;
@@ -956,11 +977,13 @@ document.documentElement.setAttribute('data-theme',t);}catch(e){document.documen
     <button class="tool-tab" id="tabLogo" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><rect x="8" y="12" width="8" height="5" rx="1"/></svg><span>Tempel Logo</span></button>
     <button class="tool-tab" id="tabEdit" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg><span>Edit Teks PDF</span></button>
     <button class="tool-tab" id="tabSign" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17c2-6 4-10 6-10s0 8 2 8 3-5 5-5 1 3 5 3"/><path d="M3 21h18"/></svg><span>Tanda Tangan</span></button>
+    <button class="tool-tab" id="tabQrRead" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20v.01M17 20h4v-3"/></svg><span>Baca QR</span></button>
     <div class="nav-group">Halaman</div>
     <button class="tool-tab" id="tabDelete" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg><span>Hapus Halaman</span></button>
     <button class="tool-tab" id="tabInsert" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 11v6M9 14h6"/></svg><span>Sisipkan PDF</span></button>
     <button class="tool-tab" id="tabCrop" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2v14a2 2 0 0 0 2 2h14M2 6h14a2 2 0 0 1 2 2v14"/></svg><span>Crop PDF</span></button>
     <button class="tool-tab" id="tabCompress" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg><span>Kompres PDF</span></button>
+    <button class="tool-tab" id="tabUnlock" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></svg><span>Buka Kunci PDF</span></button>
     <div class="nav-group">Konversi</div>
     <button class="tool-tab" id="tabConvert" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg><span>Word/Excel ke PDF</span></button>
     <button class="tool-tab" id="tabPdfToOffice" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 8H7l3-3M4 16h13l-3 3"/></svg><span>PDF ke Word/Excel</span></button>
@@ -1024,6 +1047,12 @@ document.documentElement.setAttribute('data-theme',t);}catch(e){document.documen
         <p class="home-tool-desc">Foto tanda tangan dari kertas, hapus latar, lalu tempel ke PDF.</p>
         <div class="home-tool-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
       </button>
+      <button class="home-tool-card" data-tab="tabQrRead" type="button">
+        <div class="home-tool-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20v.01M17 20h4v-3"/></svg></div>
+        <div class="home-tool-name">Baca QR</div>
+        <p class="home-tool-desc">Baca isi QR code dari foto, gambar, atau kamera langsung.</p>
+        <div class="home-tool-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      </button>
     </div>
 
     <!-- Alat Halaman -->
@@ -1051,6 +1080,12 @@ document.documentElement.setAttribute('data-theme',t);}catch(e){document.documen
         <div class="home-tool-icon ic-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg></div>
         <div class="home-tool-name">Kompres PDF</div>
         <p class="home-tool-desc">Kecilkan ukuran file PDF hingga target ukuran yang kamu tentukan sendiri.</p>
+        <div class="home-tool-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      </button>
+      <button class="home-tool-card" data-tab="tabUnlock" type="button">
+        <div class="home-tool-icon ic-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></svg></div>
+        <div class="home-tool-name">Buka Kunci PDF</div>
+        <p class="home-tool-desc">Buka PDF yang dikunci: hapus pembatasan cetak/salin/edit atau kata sandi (kalau kamu tahu sandinya).</p>
         <div class="home-tool-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
       </button>
     </div>
@@ -1571,22 +1606,99 @@ document.documentElement.setAttribute('data-theme',t);}catch(e){document.documen
 
     <div class="card" id="sgSourceCard">
       <h2>1. Ambil tanda tangan</h2>
-      <p class="sub">Pilih foto tanda tangan yang ditulis di kertas putih (JPG/PNG), atau foto langsung dengan kamera. Latar kertas akan dihapus otomatis supaya tanda tangan transparan.</p>
-      <div class="drop-row">
-        <label class="dropzone" id="dz-sg-file">
-          <input type="file" id="input-sg-file" accept="image/png, image/jpeg, image/*">
-          <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-8 9"/></svg></span>
-          <span class="label">Pilih gambar tanda tangan</span>
-          <span class="hint">JPG / PNG, atau seret ke sini</span>
-          <div class="filename" id="sg-file-filename"></div>
-        </label>
-        <label class="dropzone" id="dz-sg-cam">
-          <input type="file" id="input-sg-cam" accept="image/*" capture="environment">
-          <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
-          <span class="label">Foto dari kertas (kamera)</span>
-          <span class="hint">Tulis di kertas putih, foto dari dekat dengan cahaya terang</span>
-          <div class="filename" id="sg-cam-filename"></div>
-        </label>
+      <!-- Tab pilihan sumber -->
+      <div class="sg-src-tabs" id="sgSrcTabs">
+        <button class="sg-src-tab active" id="sgSrcTabDraw" type="button">✍️ Tulis langsung</button>
+        <button class="sg-src-tab" id="sgSrcTabPhoto" type="button">📷 Dari foto/kamera</button>
+        <button class="sg-src-tab" id="sgSrcTabQr" type="button">▦ Barcode (QR)</button>
+      </div>
+
+      <!-- Panel: tulis langsung -->
+      <div id="sgDrawPanel">
+        <p class="sub">Tanda tangan langsung di lembar putih di bawah menggunakan jari atau stylus.</p>
+        <div class="sg-draw-wrap" id="sgDrawWrap">
+          <canvas id="sgDrawCanvas"></canvas>
+        </div>
+        <div class="toolbar" style="margin-top:10px;">
+          <div class="group">
+            <label for="sgDrawColor">Warna tinta</label>
+            <select id="sgDrawColor">
+              <option value="#1a1a1a">Hitam</option>
+              <option value="#003580">Biru tua</option>
+              <option value="#0000cc">Biru</option>
+            </select>
+          </div>
+          <div class="group">
+            <label for="sgDrawSize">Ketebalan</label>
+            <input type="range" id="sgDrawSize" min="1" max="8" value="4" style="width:130px">
+          </div>
+          <button class="btn ghost" id="sgDrawUndo" type="button" disabled>↶ Urungkan</button>
+          <button class="btn ghost" id="sgDrawClear" type="button">🗑 Hapus</button>
+          <button class="btn gold" id="sgDrawDone" type="button">Gunakan tanda tangan ini →</button>
+        </div>
+      </div>
+
+      <!-- Panel: foto/kamera -->
+      <div id="sgPhotoPanel" style="display:none;">
+        <p class="sub">Pilih foto tanda tangan yang ditulis di kertas putih (JPG/PNG), atau foto langsung dengan kamera. Latar kertas akan dihapus otomatis supaya tanda tangan transparan.</p>
+        <div class="drop-row">
+          <label class="dropzone" id="dz-sg-file">
+            <input type="file" id="input-sg-file" accept="image/png, image/jpeg, image/*">
+            <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-8 9"/></svg></span>
+            <span class="label">Pilih gambar tanda tangan</span>
+            <span class="hint">JPG / PNG, atau seret ke sini</span>
+            <div class="filename" id="sg-file-filename"></div>
+          </label>
+          <label class="dropzone" id="dz-sg-cam">
+            <input type="file" id="input-sg-cam" accept="image/*" capture="environment">
+            <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
+            <span class="label">Foto dari kertas (kamera)</span>
+            <span class="hint">Tulis di kertas putih, foto dari dekat dengan cahaya terang</span>
+            <div class="filename" id="sg-cam-filename"></div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Panel: barcode / QR -->
+      <div id="sgQrPanel" style="display:none;">
+        <p class="sub">Buat tanda tangan elektronik berupa barcode QR. Saat dipindai, QR menampilkan data penandatangan di bawah ini. Semua diproses di perangkatmu.</p>
+        <div class="sg-qr-grid">
+          <div class="sg-qr-form">
+            <label for="sgQrMode">Jenis isi QR</label>
+            <select id="sgQrMode" style="width:100%;box-sizing:border-box;">
+              <option value="person">Data penandatangan</option>
+              <option value="link">Tautan / alamat web / Google Drive</option>
+            </select>
+            <div id="sgQrLinkFields" style="display:none;">
+              <label for="sgQrLink">Tautan atau alamat web</label>
+              <input type="text" id="sgQrLink" inputmode="url" autocapitalize="off" autocomplete="off" placeholder="Contoh: https://drive.google.com/file/d/...">
+              <label for="sgQrLinkCap">Tulisan di bawah QR (opsional)</label>
+              <input type="text" id="sgQrLinkCap" placeholder="Contoh: Dokumen asli — pindai untuk membuka">
+              <p class="sub" style="margin:8px 0 0;font-size:12.5px;">Untuk Google Drive: buka file &rarr; Bagikan &rarr; ubah akses ke &ldquo;Siapa saja yang memiliki link&rdquo;, lalu salin tautannya ke sini. Kalau tidak, orang lain tidak bisa membukanya. Awalan https:// akan ditambahkan otomatis.</p>
+            </div>
+            <div id="sgQrPersonFields">
+            <label for="sgQrName">Nama penandatangan</label>
+            <input type="text" id="sgQrName" placeholder="Contoh: Muhammad, S.Pd.">
+            <label for="sgQrRole">Jabatan</label>
+            <input type="text" id="sgQrRole" placeholder="Contoh: Kepala Madrasah">
+            <label for="sgQrNip">NIP (opsional)</label>
+            <input type="text" id="sgQrNip" placeholder="Contoh: 19800101 200501 1 001">
+            <label for="sgQrOrg">Instansi (opsional)</label>
+            <input type="text" id="sgQrOrg" placeholder="Contoh: MAN 1 Kota">
+            <label class="sg-qr-chk"><input type="checkbox" id="sgQrDate" checked> Sertakan tanggal penandatanganan</label>
+            <label class="sg-qr-chk"><input type="checkbox" id="sgQrCaption" checked> Tampilkan nama &amp; jabatan di bawah QR</label>
+            </div>
+            <label for="sgQrText">Isi barcode (bisa diubah, mis. diganti tautan verifikasi)</label>
+            <textarea id="sgQrText" rows="5"></textarea>
+          </div>
+          <div class="sg-qr-side">
+            <div class="sg-qr-prev"><canvas id="sgQrCanvas"></canvas></div>
+            <p class="sub" id="sgQrInfo" style="text-align:center;margin:8px 0 0;"></p>
+          </div>
+        </div>
+        <div class="toolbar" style="margin-top:12px;">
+          <button class="btn gold" id="sgQrDone" type="button">Gunakan barcode ini →</button>
+        </div>
       </div>
     </div>
 
@@ -1723,6 +1835,84 @@ document.documentElement.setAttribute('data-theme',t);}catch(e){document.documen
       </div>
     </div>
 
+    <!-- Card: sisipkan TTD ke Word -->
+    <div class="card" id="sgWordCard" style="display:none;">
+      <h2>Atau: Sisipkan ke Word (.docx)</h2>
+      <p class="sub">Tempel tanda tangan di atas ke file Word. Tanda tangan akan disisipkan sebagai gambar transparan di posisi kursor / akhir dokumen, lalu bisa digeser bebas di Word.</p>
+      <div class="drop-row" style="grid-template-columns:1fr;">
+        <label class="dropzone" id="dz-sg-docx">
+          <input type="file" id="input-sg-docx" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+          <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg></span>
+          <span class="label">Pilih file Word (.docx)</span>
+          <span class="hint">atau seret ke sini</span>
+          <div class="filename" id="sg-docx-filename"></div>
+        </label>
+      </div>
+      <div class="toolbar" style="margin-top:12px;flex-wrap:wrap;gap:12px;">
+        <div class="group">
+          <label for="sgDocxWidth">Lebar TTD di Word</label>
+          <select id="sgDocxWidth">
+            <option value="3">Kecil (3 cm)</option>
+            <option value="4" selected>Sedang (4 cm)</option>
+            <option value="5.5">Besar (5.5 cm)</option>
+            <option value="7">Sangat besar (7 cm)</option>
+          </select>
+        </div>
+        <div class="group">
+          <label for="sgDocxPos">Posisi sisipan</label>
+          <select id="sgDocxPos">
+            <option value="end" selected>Akhir dokumen</option>
+            <option value="inline">Di dalam teks (inline)</option>
+          </select>
+        </div>
+      </div>
+      <div class="hint-row" style="margin-top:12px;">
+        <span class="note" id="sgDocxNote"></span>
+        <button class="btn gold" id="sgDocxDownloadBtn" type="button" disabled>Unduh Word bertanda tangan</button>
+      </div>
+    </div>
+
+    <!-- Card: sisipkan TTD ke Excel -->
+    <div class="card" id="sgXlsxCard" style="display:none;">
+      <h2>Atau: Sisipkan ke Excel (.xlsx)</h2>
+      <p class="sub">Tempel tanda tangan di atas ke file Excel sebagai gambar yang bisa diposisikan bebas di sheet.</p>
+      <div class="drop-row" style="grid-template-columns:1fr;">
+        <label class="dropzone" id="dz-sg-xlsx">
+          <input type="file" id="input-sg-xlsx" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+          <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 12l2 2 4-4"/></svg></span>
+          <span class="label">Pilih file Excel (.xlsx)</span>
+          <span class="hint">atau seret ke sini</span>
+          <div class="filename" id="sg-xlsx-filename"></div>
+        </label>
+      </div>
+      <div class="toolbar" style="margin-top:12px;flex-wrap:wrap;gap:12px;">
+        <div class="group">
+          <label for="sgXlsxSheet">Sheet tujuan</label>
+          <select id="sgXlsxSheet"><option value="0">Sheet 1 (default)</option></select>
+        </div>
+        <div class="group">
+          <label for="sgXlsxCol">Kolom (A–Z)</label>
+          <input type="text" id="sgXlsxCol" value="E" maxlength="2" style="width:52px;padding:4px 8px;border:1px solid var(--line-strong);border-radius:7px;background:var(--paper-card);color:var(--ink);font:inherit;font-size:13px;">
+        </div>
+        <div class="group">
+          <label for="sgXlsxRow">Baris</label>
+          <input type="number" id="sgXlsxRow" value="20" min="1" max="1000" style="width:70px;padding:4px 8px;border:1px solid var(--line-strong);border-radius:7px;background:var(--paper-card);color:var(--ink);font:inherit;font-size:13px;">
+        </div>
+        <div class="group">
+          <label for="sgXlsxWidth">Lebar TTD</label>
+          <select id="sgXlsxWidth">
+            <option value="80">Kecil (80 px)</option>
+            <option value="120" selected>Sedang (120 px)</option>
+            <option value="180">Besar (180 px)</option>
+          </select>
+        </div>
+      </div>
+      <div class="hint-row" style="margin-top:12px;">
+        <span class="note" id="sgXlsxNote"></span>
+        <button class="btn gold" id="sgXlsxDownloadBtn" type="button" disabled>Unduh Excel bertanda tangan</button>
+      </div>
+    </div>
+
   </div><!-- /viewSign -->
 
   <div id="viewCompress" style="display:none;">
@@ -1779,6 +1969,91 @@ document.documentElement.setAttribute('data-theme',t);}catch(e){document.documen
     </div>
 
   </div><!-- /viewCompress -->
+
+  <div id="viewUnlock" style="display:none;">
+    <div class="card" id="ulUploadCard">
+      <h2>Unggah PDF yang terkunci</h2>
+      <p class="sub">PDF dengan pembatasan (tidak bisa dicetak, disalin, atau diedit) langsung dibuka kuncinya. Kalau PDF minta kata sandi untuk dibuka, kamu perlu memasukkan sandinya sendiri. Alat ini tidak menebak atau membobol sandi.</p>
+      <div class="drop-row" style="grid-template-columns:1fr;">
+        <label class="dropzone" id="dz-ul-pdf">
+          <input type="file" id="input-ul-pdf" accept="application/pdf">
+          <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></svg></span>
+          <span class="label">Pilih file PDF terkunci</span>
+          <span class="hint">atau seret ke sini</span>
+          <div class="filename" id="ul-pdf-filename"></div>
+        </label>
+      </div>
+    </div>
+
+    <div class="card" id="ulPwCard" style="display:none;">
+      <h2>PDF ini dilindungi kata sandi</h2>
+      <p class="sub" id="ulPwMsg">Masukkan kata sandi untuk membuka file.</p>
+      <div class="hint-row" style="margin-top:8px;">
+        <input type="password" id="ulPw" autocomplete="off" placeholder="Kata sandi PDF" style="flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--line-strong);border-radius:8px;background:var(--paper-card);color:var(--ink);font:inherit;">
+        <button class="btn gold" id="ulPwBtn" type="button">Buka</button>
+      </div>
+    </div>
+
+    <div class="card" id="ulEditorCard" style="display:none;">
+      <h2>Siap dibuka kuncinya</h2>
+      <p class="sub" id="ulInfo"></p>
+      <div class="toolbar">
+        <div class="group">
+          <label for="ulQuality">Ketajaman</label>
+          <select id="ulQuality">
+            <option value="1.5">Standar (ringan)</option>
+            <option value="2" selected>Tinggi</option>
+            <option value="3">Sangat tinggi (file besar)</option>
+          </select>
+        </div>
+      </div>
+      <div class="hint-row">
+        <span class="note">Setiap halaman disalin sebagai gambar ke PDF baru yang bebas kunci. Akibatnya teks tidak bisa lagi dipilih atau dicari. Gunakan hanya untuk dokumen milikmu atau yang kamu berhak membukanya.</span>
+        <button class="btn ghost" id="ulChangeBtn" type="button">Ganti PDF</button>
+        <button class="btn gold" id="ulDownloadBtn" type="button">Buka Kunci &amp; Unduh PDF</button>
+      </div>
+    </div>
+  </div><!-- /viewUnlock -->
+
+
+  <div id="viewQrRead" style="display:none;">
+    <div class="card">
+      <h2>Baca QR code</h2>
+      <p class="sub">Pilih gambar QR, foto QR dengan kamera, atau pindai langsung. Diproses di browser, tidak diunggah ke server.</p>
+      <div class="drop-row" style="grid-template-columns:1fr;">
+        <label class="dropzone" id="qrDz">
+          <input type="file" id="qrFile" accept="image/*">
+          <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20v.01M17 20h4v-3"/></svg></span>
+          <span class="label">Pilih gambar QR</span>
+          <span class="hint">JPG / PNG, atau seret ke sini</span>
+        </label>
+      </div>
+      <div class="toolbar" style="margin-top:12px;">
+        <label class="btn ghost" style="cursor:pointer;">📷 Foto dengan kamera<input type="file" id="qrCamFile" accept="image/*" capture="environment" style="display:none"></label>
+        <button class="btn ghost" id="qrLiveBtn" type="button">🎥 Pindai langsung</button>
+      </div>
+      <div id="qrLiveBox" style="display:none;margin-top:6px;">
+        <div style="position:relative;border-radius:12px;overflow:hidden;background:#000;max-width:480px;">
+          <video id="qrVideo" playsinline muted style="display:block;width:100%;"></video>
+          <div style="position:absolute;inset:18% 18%;border:3px solid rgba(255,255,255,.85);border-radius:14px;pointer-events:none;"></div>
+        </div>
+        <button class="btn ghost" id="qrStopBtn" type="button" style="margin-top:8px;">Berhenti</button>
+      </div>
+      <canvas id="qrWork" style="display:none"></canvas>
+    </div>
+    <div class="card" id="qrResultCard" style="display:none;">
+      <h2>Hasil</h2>
+      <img id="qrThumb" alt="" style="display:none;max-width:160px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-bottom:10px;">
+      <div id="qrFields" style="display:none;margin-bottom:10px;"></div>
+      <label for="qrText" style="font-size:12.5px;font-weight:600;color:var(--ink-soft);">Isi mentah</label>
+      <textarea id="qrText" readonly rows="6" style="width:100%;box-sizing:border-box;margin-top:4px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--paper-card);color:var(--ink);font:inherit;font-size:13.5px;"></textarea>
+      <div class="toolbar" style="margin-top:10px;margin-bottom:0;">
+        <button class="btn gold" id="qrCopy" type="button">Salin</button>
+        <button class="btn ghost" id="qrOpen" type="button" style="display:none;">Buka tautan ↗</button>
+      </div>
+      <p class="sub" id="qrNote" style="margin-top:8px;"></p>
+    </div>
+  </div><!-- /viewQrRead -->
 
   <footer class="status" id="statusLine"></footer>
   </div><!-- /wrap -->
@@ -4697,6 +4972,483 @@ const sgTab = { btn: document.getElementById('tabSign'), view: document.getEleme
 tabs.push(sgTab);
 sgTab.btn.addEventListener('click', ()=> activateTab(sgTab));
 
+// ---------- Tab sumber (Tulis langsung / Foto / Barcode QR) ----------
+(function(){
+  const tabs3 = [
+    ['sgSrcTabDraw','sgDrawPanel'],
+    ['sgSrcTabPhoto','sgPhotoPanel'],
+    ['sgSrcTabQr','sgQrPanel'],
+  ].map(([t,p]) => [document.getElementById(t), document.getElementById(p)]);
+  function show(i){
+    tabs3.forEach(([t,p], k)=>{ t.classList.toggle('active', k===i); p.style.display = k===i ? '' : 'none'; });
+    if(i===0) sgDrawInit();
+    if(i===2) sgQrRender();
+  }
+  tabs3.forEach(([t], i)=> t.addEventListener('click', ()=> show(i)));
+})();
+
+// ---------- Draw Pad: tanda tangan langsung di layar ----------
+// Titik disimpan dalam satuan relatif terhadap tinggi kanvas (bukan piksel),
+// sehingga hasil tetap akurat/proporsional saat layar diputar atau ukuran berubah.
+const sgDrawState = {
+  drawing: false, pid: null,
+  strokes: [],      // [{pts:[{x,y}], color, w}]  (x,y,w dalam satuan tinggi kanvas)
+  cur: null,
+  W: 0, H: 0, dpr: 1,
+};
+const SG_PEN_UNIT = 0.0038; // lebar garis per 1 level ketebalan (satuan tinggi)
+
+function sgDrawEls(){
+  return {
+    wrap: document.getElementById('sgDrawWrap'),
+    canvas: document.getElementById('sgDrawCanvas'),
+    undo: document.getElementById('sgDrawUndo'),
+  };
+}
+
+// Atur ukuran kanvas mengikuti lebar lembar; aman dipanggil berkali-kali.
+function sgDrawLayout(){
+  const { wrap, canvas } = sgDrawEls();
+  const W = Math.round(wrap.clientWidth);
+  if(!W) return false; // panel masih tersembunyi
+  const H = Math.max(300, Math.min(480, Math.round(W * 0.68)));
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const pw = Math.round(W * dpr), ph = Math.round(H * dpr);
+  if(canvas.width === pw && canvas.height === ph && sgDrawState.W === W && sgDrawState.H === H){
+    return true;
+  }
+  canvas.width = pw; canvas.height = ph;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  sgDrawState.W = W; sgDrawState.H = H; sgDrawState.dpr = dpr;
+  sgDrawRedraw();
+  return true;
+}
+function sgDrawInit(){ sgDrawLayout(); }
+
+// Gambar semua coretan ke ctx dengan lebar garis yang berubah-ubah (efek pulpen tinta).
+// scale = piksel per satuan, ox/oy = offset piksel.
+function sgDrawPaint(ctx, strokes, scale, ox, oy){
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for(const s of strokes){
+    const pts = s.pts, n = pts.length;
+    if(!n) continue;
+    const X = p => p.x * scale - ox, Y = p => p.y * scale - oy;
+    // lebar tiap titik = lebar dasar x faktor (kecepatan/tekanan) x runcing di awal & akhir
+    const W = pts.map((p, i) => {
+      let f = p.f || 1;
+      f *= Math.min(1, 0.4 + 0.6 * i / 3);                               // awal goresan meruncing
+      if(s.done) f *= Math.min(1, 0.3 + 0.7 * (n - 1 - i) / 5);          // ujung goresan meruncing
+      return Math.max(0.0008, s.w * f) * scale;
+    });
+    ctx.strokeStyle = s.color; ctx.fillStyle = s.color;
+    if(n === 1){
+      ctx.beginPath(); ctx.arc(X(pts[0]), Y(pts[0]), s.w * 0.55 * scale, 0, Math.PI * 2); ctx.fill();
+      continue;
+    }
+    if(n === 2){
+      ctx.lineWidth = (W[0] + W[1]) / 2;
+      ctx.beginPath(); ctx.moveTo(X(pts[0]), Y(pts[0])); ctx.lineTo(X(pts[1]), Y(pts[1])); ctx.stroke();
+      continue;
+    }
+    let sx = X(pts[0]), sy = Y(pts[0]);
+    for(let i = 1; i < n - 1; i++){
+      const mx = (X(pts[i]) + X(pts[i+1])) / 2, my = (Y(pts[i]) + Y(pts[i+1])) / 2;
+      ctx.lineWidth = W[i];
+      ctx.beginPath(); ctx.moveTo(sx, sy);
+      ctx.quadraticCurveTo(X(pts[i]), Y(pts[i]), mx, my);
+      ctx.stroke();
+      sx = mx; sy = my;
+    }
+    ctx.lineWidth = W[n - 1];
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(X(pts[n-1]), Y(pts[n-1])); ctx.stroke();
+  }
+}
+
+function sgDrawRedraw(){
+  const { wrap, canvas, undo } = sgDrawEls();
+  const { H, dpr, strokes } = sgDrawState;
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  sgDrawPaint(ctx, strokes, H, 0, 0);
+  wrap.classList.toggle('has-ink', strokes.length > 0);
+  undo.disabled = strokes.length === 0;
+}
+
+// Posisi pointer -> satuan tinggi kanvas (akurat walau ada scroll/zoom/transform)
+function sgDrawPos(e, canvas){
+  const r = canvas.getBoundingClientRect();
+  return { x: (e.clientX - r.left) / r.height, y: (e.clientY - r.top) / r.height };
+}
+
+// Titik baru + faktor lebar: stylus -> dari tekanan; jari/mouse -> dari kecepatan (cepat=tipis, pelan=tebal)
+function sgDrawMakePt(ev, canvas, prev){
+  const p = sgDrawPos(ev, canvas);
+  p.t = ev.timeStamp;
+  let target;
+  if(ev.pointerType === 'pen' && ev.pressure > 0){
+    target = 0.3 + 1.2 * ev.pressure;
+  } else if(prev){
+    const dt = Math.max(1, p.t - prev.t);
+    const v = Math.hypot(p.x - prev.x, p.y - prev.y) / dt;   // satuan tinggi per ms
+    target = 1.25 - 0.8 * Math.min(1, v / 0.004);
+  } else {
+    target = 0.9;
+  }
+  p.f = prev ? prev.f * 0.7 + target * 0.3 : target;           // haluskan perubahan lebar
+  return p;
+}
+
+(function sgDrawAttach(){
+  const { canvas } = sgDrawEls();
+  const st = sgDrawState;
+  const color = () => document.getElementById('sgDrawColor').value;
+  const size = () => parseFloat(document.getElementById('sgDrawSize').value) || 4;
+
+  canvas.addEventListener('pointerdown', (e)=>{
+    if(e.pointerType === 'mouse' && e.button !== 0) return;
+    if(st.drawing) return;              // abaikan jari kedua / telapak tangan
+    e.preventDefault();
+    sgDrawLayout();
+    try{ canvas.setPointerCapture(e.pointerId); }catch(_){}
+    st.drawing = true; st.pid = e.pointerId;
+    st.cur = { pts: [sgDrawMakePt(e, canvas, null)], color: color(), w: size() * SG_PEN_UNIT, done: false };
+    st.strokes.push(st.cur);
+    sgDrawRedraw();
+  });
+  canvas.addEventListener('pointermove', (e)=>{
+    if(!st.drawing || e.pointerId !== st.pid) return;
+    e.preventDefault();
+    const evs = (e.getCoalescedEvents && e.getCoalescedEvents().length) ? e.getCoalescedEvents() : [e];
+    const pts = st.cur.pts;
+    for(const ev of evs){
+      const q = pts[pts.length - 1];
+      const p = sgDrawMakePt(ev, canvas, q);
+      if(Math.hypot(p.x - q.x, p.y - q.y) > 0.0015) pts.push(p); // buang titik yang terlalu rapat (jitter)
+    }
+    sgDrawRedraw();
+  });
+  const end = (e)=>{
+    if(!st.drawing || (e && e.pointerId !== st.pid)) return;
+    if(st.cur) st.cur.done = true;
+    st.drawing = false; st.pid = null; st.cur = null;
+    try{ canvas.releasePointerCapture(e.pointerId); }catch(_){}
+    sgDrawRedraw();
+  };
+  canvas.addEventListener('pointerup', end);
+  canvas.addEventListener('pointercancel', end);
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+  // Ikuti perubahan ukuran (panel baru tampil, layar diputar, dll.)
+  const wrap = document.getElementById('sgDrawWrap');
+  if(window.ResizeObserver) new ResizeObserver(()=> sgDrawLayout()).observe(wrap);
+  window.addEventListener('resize', sgDrawLayout);
+  window.addEventListener('orientationchange', ()=> setTimeout(sgDrawLayout, 200));
+})();
+
+document.getElementById('sgDrawUndo').addEventListener('click', ()=>{
+  if(sgDrawState.strokes.length){ sgDrawState.strokes.pop(); sgDrawRedraw(); }
+});
+
+document.getElementById('sgDrawClear').addEventListener('click', ()=>{
+  sgDrawState.strokes = [];
+  sgDrawRedraw();
+});
+
+document.getElementById('sgDrawDone').addEventListener('click', ()=>{
+  clearError();
+  const strokes = sgDrawState.strokes;
+  if(strokes.length === 0){
+    showError('Belum ada tanda tangan. Tulis dulu di kotak di atas.');
+    return;
+  }
+  // Hitung kotak batas coretan (termasuk tebal garis) lalu potong rapat + sedikit margin
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for(const s of strokes){
+    const r = s.w * 0.8;
+    for(const p of s.pts){
+      if(p.x - r < x0) x0 = p.x - r; if(p.x + r > x1) x1 = p.x + r;
+      if(p.y - r < y0) y0 = p.y - r; if(p.y + r > y1) y1 = p.y + r;
+    }
+  }
+  const pad = 0.04;
+  x0 -= pad; y0 -= pad; x1 += pad; y1 += pad;
+  const bw = x1 - x0, bh = y1 - y0;
+  // Render ulang dari data vektor pada resolusi tinggi (tajam, bukan hasil memperbesar piksel)
+  const longest = Math.max(bw, bh);
+  const scale = Math.max(sgDrawState.H * 1.5, Math.min(sgDrawState.H * 6, 1800 / longest));
+  const out = document.createElement('canvas');
+  out.width = Math.max(1, Math.round(bw * scale));
+  out.height = Math.max(1, Math.round(bh * scale));
+  const ctx = out.getContext('2d', { willReadFrequently: true });
+  sgDrawPaint(ctx, strokes, scale, x0 * scale, y0 * scale);
+
+  // Latar transparan (tinta saja) -> langsung dipakai tanpa hapus latar
+  sgS.base = out;
+  sgS.rot = 0;
+  sgS.strokes = [];
+  sgS.prevZoom = 1;
+  sgE.removeBg.checked = false;
+  sgS.isQr = false;
+  sgE.cleanCard.style.display = '';
+  if(!sgS.pdfDoc) sgE.pdfCard.style.display = '';
+  sgRebuild();
+  setTimeout(()=> document.getElementById('sgCleanCard').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+});
+
+(function(){ setTimeout(sgDrawInit, 100); })();
+
+// ---------- Pembuat QR Code (offline, byte mode, koreksi galat M) ----------
+const QRGen = (function(){
+  const ECC = [-1,10,16,26,18,24,16,18,22,22,26,30,22,22,24,24,28,28,26,26,26,26,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28];
+  const BLK = [-1,1,1,1,2,2,4,4,4,5,5,5,8,9,9,10,10,11,13,14,16,17,17,18,20,21,23,25,26,28,29,31,33,35,37,38,40,43,45,47,49];
+  function rawModules(v){
+    let r = (16*v+128)*v+64;
+    if(v >= 2){ const n = Math.floor(v/7)+2; r -= (25*n-10)*n-55; if(v >= 7) r -= 36; }
+    return r;
+  }
+  function dataCodewords(v){ return Math.floor(rawModules(v)/8) - ECC[v]*BLK[v]; }
+  function gfMul(x, y){ let z = 0; for(let i = 7; i >= 0; i--){ z = (z << 1) ^ ((z >>> 7) * 0x11D); z ^= ((y >>> i) & 1) * x; } return z; }
+  function rsDiv(deg){
+    const res = new Array(deg).fill(0); res[deg-1] = 1; let root = 1;
+    for(let i = 0; i < deg; i++){
+      for(let j = 0; j < deg; j++){ res[j] = gfMul(res[j], root); if(j+1 < deg) res[j] ^= res[j+1]; }
+      root = gfMul(root, 2);
+    }
+    return res;
+  }
+  function rsRem(data, div){
+    const res = div.map(() => 0);
+    for(const b of data){
+      const f = b ^ res.shift(); res.push(0);
+      div.forEach((c, i) => res[i] ^= gfMul(c, f));
+    }
+    return res;
+  }
+  function utf8(s){ return Array.from(new TextEncoder().encode(s)); }
+  function encode(text){
+    const bytes = utf8(text);
+    let v = 1;
+    for(;; v++){
+      if(v > 40) throw new Error('Teks terlalu panjang untuk QR.');
+      const cc = v < 10 ? 8 : 16;
+      if(4 + cc + bytes.length*8 <= dataCodewords(v)*8) break;
+    }
+    const bits = [];
+    const put = (val, n) => { for(let i = n-1; i >= 0; i--) bits.push((val >>> i) & 1); };
+    put(4, 4); put(bytes.length, v < 10 ? 8 : 16); bytes.forEach(b => put(b, 8));
+    const cap = dataCodewords(v)*8;
+    put(0, Math.min(4, cap - bits.length));
+    while(bits.length % 8) bits.push(0);
+    for(let pad = 0xEC; bits.length < cap; pad ^= 0xEC ^ 0x11) put(pad, 8);
+    const data = [];
+    for(let i = 0; i < bits.length; i += 8){ let b = 0; for(let j = 0; j < 8; j++) b = (b << 1) | bits[i+j]; data.push(b); }
+    // bagi blok + ECC
+    const nb = BLK[v], eccLen = ECC[v], raw = Math.floor(rawModules(v)/8);
+    const shortBlocks = nb - raw % nb, shortLen = Math.floor(raw/nb);
+    const div = rsDiv(eccLen), blocks = [];
+    for(let i = 0, k = 0; i < nb; i++){
+      const len = shortLen - eccLen + (i < shortBlocks ? 0 : 1);
+      const d = data.slice(k, k+len); k += len;
+      const e = rsRem(d, div);
+      if(i < shortBlocks) d.push(0);
+      blocks.push(d.concat(e));
+    }
+    const all = [];
+    for(let i = 0; i < blocks[0].length; i++)
+      blocks.forEach((b, j) => { if(i !== shortLen - eccLen || j >= shortBlocks) all.push(b[i]); });
+    return { v, codewords: all };
+  }
+  function build(text){
+    const { v, codewords } = encode(text);
+    const size = v*4+17;
+    const mod = [], fn = [];
+    for(let i = 0; i < size; i++){ mod.push(new Array(size).fill(false)); fn.push(new Array(size).fill(false)); }
+    const setF = (x, y, d) => { mod[y][x] = d; fn[y][x] = true; };
+    for(let i = 0; i < size; i++){ setF(6, i, i%2 === 0); setF(i, 6, i%2 === 0); }
+    const finder = (cx, cy) => {
+      for(let dy = -4; dy <= 4; dy++) for(let dx = -4; dx <= 4; dx++){
+        const d = Math.max(Math.abs(dx), Math.abs(dy)), x = cx+dx, y = cy+dy;
+        if(x >= 0 && x < size && y >= 0 && y < size) setF(x, y, d !== 2 && d !== 4);
+      }
+    };
+    finder(3,3); finder(size-4,3); finder(3,size-4);
+    const al = [];
+    if(v > 1){
+      const n = Math.floor(v/7)+2, step = v === 32 ? 26 : Math.ceil((v*4+4)/(n*2-2))*2;
+      al.push(6); for(let p = size-7; al.length < n; p -= step) al.splice(1, 0, p);
+    }
+    for(let i = 0; i < al.length; i++) for(let j = 0; j < al.length; j++){
+      if((i === 0 && j === 0) || (i === 0 && j === al.length-1) || (i === al.length-1 && j === 0)) continue;
+      for(let dy = -2; dy <= 2; dy++) for(let dx = -2; dx <= 2; dx++)
+        setF(al[i]+dx, al[j]+dy, Math.max(Math.abs(dx), Math.abs(dy)) !== 1);
+    }
+    const drawFormat = (mask) => {
+      const dat = (0 << 3) | mask; // ECC M = 00
+      let rem = dat; for(let i = 0; i < 10; i++) rem = (rem << 1) ^ ((rem >>> 9) * 0x537);
+      const bits = ((dat << 10) | rem) ^ 0x5412, g = i => ((bits >>> i) & 1) !== 0;
+      for(let i = 0; i <= 5; i++) setF(8, i, g(i));
+      setF(8,7,g(6)); setF(8,8,g(7)); setF(7,8,g(8));
+      for(let i = 9; i < 15; i++) setF(14-i, 8, g(i));
+      for(let i = 0; i < 8; i++) setF(size-1-i, 8, g(i));
+      for(let i = 8; i < 15; i++) setF(8, size-15+i, g(i));
+      setF(8, size-8, true);
+    };
+    drawFormat(0);
+    if(v >= 7){
+      let rem = v; for(let i = 0; i < 12; i++) rem = (rem << 1) ^ ((rem >>> 11) * 0x1F25);
+      const bits = (v << 12) | rem;
+      for(let i = 0; i < 18; i++){
+        const b = ((bits >>> i) & 1) !== 0, a = size-11 + i%3, c = Math.floor(i/3);
+        setF(a, c, b); setF(c, a, b);
+      }
+    }
+    // letakkan data (zigzag)
+    for(let i = 0, right = size-1; right >= 1; right -= 2){
+      if(right === 6) right = 5;
+      for(let vert = 0; vert < size; vert++) for(let j = 0; j < 2; j++){
+        const x = right - j, upward = ((right+1) & 2) === 0, y = upward ? size-1-vert : vert;
+        if(!fn[y][x] && i < codewords.length*8){ mod[y][x] = ((codewords[i >>> 3] >>> (7-(i&7))) & 1) !== 0; i++; }
+      }
+    }
+    const maskFn = [(x,y)=>(x+y)%2===0,(x,y)=>y%2===0,(x,y)=>x%3===0,(x,y)=>(x+y)%3===0,
+      (x,y)=>(Math.floor(x/3)+Math.floor(y/2))%2===0,(x,y)=>x*y%2+x*y%3===0,(x,y)=>(x*y%2+x*y%3)%2===0,(x,y)=>((x+y)%2+x*y%3)%2===0];
+    const applyMask = m => { for(let y = 0; y < size; y++) for(let x = 0; x < size; x++) if(!fn[y][x] && maskFn[m](x,y)) mod[y][x] = !mod[y][x]; };
+    const penalty = () => {
+      let p = 0;
+      for(let pass = 0; pass < 2; pass++){
+        for(let a = 0; a < size; a++){
+          let run = 1, hist = [0,0,0,0,0,0,0], prev = null;
+          for(let b = 0; b < size; b++){
+            const c = pass ? mod[b][a] : mod[a][b];
+            if(c === prev){ run++; if(run === 5) p += 3; else if(run > 5) p++; }
+            else { prev = c; run = 1; }
+          }
+          // pola mirip finder
+          const line = []; for(let b = 0; b < size; b++) line.push((pass ? mod[b][a] : mod[a][b]) ? 1 : 0);
+          const s = line.join('');
+          for(const pat of ['10111010000','00001011101']){ let i = -1; while((i = s.indexOf(pat, i+1)) >= 0) p += 40; }
+        }
+      }
+      for(let y = 0; y < size-1; y++) for(let x = 0; x < size-1; x++){
+        const c = mod[y][x]; if(c === mod[y][x+1] && c === mod[y+1][x] && c === mod[y+1][x+1]) p += 3;
+      }
+      let dark = 0; mod.forEach(r => r.forEach(c => { if(c) dark++; }));
+      p += (Math.ceil(Math.abs(dark*20 - size*size*10) / (size*size)) - 1) * 10;
+      return p;
+    };
+    let best = 0, bestP = Infinity;
+    for(let m = 0; m < 8; m++){
+      applyMask(m); drawFormat(m);
+      const p = penalty(); if(p < bestP){ bestP = p; best = m; }
+      applyMask(m);
+    }
+    applyMask(best); drawFormat(best);
+    return { size, mod };
+  }
+  return { build };
+})();
+
+// ---------- Barcode QR sebagai tanda tangan ----------
+const sgQr = { manual: false, canvas: null };
+function sgQrMode(){ return document.getElementById('sgQrMode').value; }
+// Rapikan tautan: tambah https:// kalau belum ada, biarkan mailto:/tel:/dll.
+function sgQrNormLink(raw){
+  let t = (raw || '').trim();
+  if(!t) return '';
+  if(/^[a-z][a-z0-9+.-]*:/i.test(t) && !/^[\w.-]+:\d+(\/|$)/.test(t)) return t;   // sudah ada skema
+  if(/\s/.test(t)) return t;                                                       // bukan alamat web (ada spasi)
+  return 'https://' + t.replace(/^\/+/, '');
+}
+function sgQrBuildText(){
+  if(sgQrMode() === 'link') return sgQrNormLink(document.getElementById('sgQrLink').value);
+  const v = id => document.getElementById(id).value.trim();
+  const lines = ['TANDA TANGAN ELEKTRONIK'];
+  if(v('sgQrName')) lines.push('Nama: ' + v('sgQrName'));
+  if(v('sgQrRole')) lines.push('Jabatan: ' + v('sgQrRole'));
+  if(v('sgQrNip')) lines.push('NIP: ' + v('sgQrNip'));
+  if(v('sgQrOrg')) lines.push('Instansi: ' + v('sgQrOrg'));
+  if(document.getElementById('sgQrDate').checked){
+    lines.push('Tanggal: ' + new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' }));
+  }
+  return lines.join('\n');
+}
+function sgQrRender(){
+  const ta = document.getElementById('sgQrText');
+  if(!sgQr.manual) ta.value = sgQrBuildText();
+  const info = document.getElementById('sgQrInfo');
+  const text = ta.value;
+  if(!text.trim()){ sgQr.canvas = null; info.textContent = sgQrMode() === 'link' ? 'Isi tautan dulu.' : 'Isi data penandatangan dulu.'; document.getElementById('sgQrCanvas').width = 0; return; }
+  let qr;
+  try{ qr = QRGen.build(text); }
+  catch(e){ sgQr.canvas = null; info.textContent = 'Teks terlalu panjang untuk QR.'; return; }
+  const S = 10, Q = 4, n = qr.size, W = (n + Q*2) * S;
+  const name = document.getElementById('sgQrName').value.trim();
+  const role = document.getElementById('sgQrRole').value.trim();
+  const isLink = sgQrMode() === 'link';
+  const cap = isLink
+    ? [document.getElementById('sgQrLinkCap').value.trim()].filter(Boolean)
+    : (document.getElementById('sgQrCaption').checked ? [name, role].filter(Boolean) : []);
+  const capH = cap.length ? cap.length * 34 + 14 : 0;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = W + capH;
+  const x = c.getContext('2d');
+  x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+  x.fillStyle = '#000';
+  for(let r = 0; r < n; r++) for(let k = 0; k < n; k++) if(qr.mod[r][k]) x.fillRect((k+Q)*S, (r+Q)*S, S, S);
+  if(cap.length){
+    x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#111';
+    cap.forEach((t, i)=>{
+      x.font = (i === 0 ? '700 ' : '500 ') + '26px "Plus Jakarta Sans", Arial, sans-serif';
+      let s = t; while(x.measureText(s).width > W - 20 && s.length > 4) s = s.slice(0, -2);
+      if(s !== t) s += '…';
+      x.fillText(s, W/2, W + 10 + i*34 + 17);
+    });
+  }
+  sgQr.canvas = c;
+  const pv = document.getElementById('sgQrCanvas');
+  pv.width = c.width; pv.height = c.height; pv.style.width = '200px';
+  pv.getContext('2d').drawImage(c, 0, 0);
+  info.textContent = 'QR ' + n + '×' + n + ' modul' + (n > 49 ? ' — tautan panjang membuat QR rapat dan sulit dipindai. Pakai pemendek tautan (mis. bit.ly) atau tautan yang lebih pendek.' : '');
+}
+['sgQrName','sgQrRole','sgQrNip','sgQrOrg','sgQrDate','sgQrCaption'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{
+    if(id === 'sgQrName' || id === 'sgQrRole' || id === 'sgQrNip' || id === 'sgQrOrg' || id === 'sgQrDate') sgQr.manual = false;
+    sgQrRender();
+  });
+});
+document.getElementById('sgQrText').addEventListener('input', ()=>{ sgQr.manual = true; sgQrRender(); });
+['sgQrLink','sgQrLinkCap'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{ if(id === 'sgQrLink') sgQr.manual = false; sgQrRender(); });
+});
+document.getElementById('sgQrMode').addEventListener('change', ()=>{
+  const link = sgQrMode() === 'link';
+  document.getElementById('sgQrLinkFields').style.display = link ? '' : 'none';
+  document.getElementById('sgQrPersonFields').style.display = link ? 'none' : '';
+  sgQr.manual = false;
+  sgQrRender();
+});
+document.getElementById('sgQrDone').addEventListener('click', ()=>{
+  clearError();
+  sgQrRender();
+  if(!sgQr.canvas){ showError('Isi data barcode dulu.'); return; }
+  const out = document.createElement('canvas');
+  out.width = sgQr.canvas.width; out.height = sgQr.canvas.height;
+  out.getContext('2d', { willReadFrequently: true }).drawImage(sgQr.canvas, 0, 0);
+  sgS.base = out;
+  sgS.rot = 0;
+  sgS.strokes = [];
+  sgS.prevZoom = 1;
+  sgE.removeBg.checked = false;   // QR harus tetap utuh (latar putih = area tenang)
+  sgS.isQr = true;
+  sgE.cleanCard.style.display = '';
+  if(!sgS.pdfDoc) sgE.pdfCard.style.display = '';
+  sgRebuild();
+  setTimeout(()=> document.getElementById('sgCleanCard').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+});
+
 // ---------- Langkah 1: ambil gambar ----------
 sgE.inFile.addEventListener('change', (e)=>{
   const f = e.target.files[0];
@@ -4714,6 +5466,7 @@ sgE.changeBtn.addEventListener('click', ()=>{ sgE.inFile.click(); });
 
 function sgLoadFile(file){
   clearError();
+  sgS.isQr = false;
   if(!file || !file.type.startsWith('image/')){
     showError('Berkas harus berupa gambar (JPG/PNG).');
     return;
@@ -4826,7 +5579,7 @@ function sgDrawStrokes(ctx){
 
 function sgRebuild(){
   if(!sgS.base) return;
-  const on = sgE.removeBg.checked;
+  const on = sgE.removeBg.checked && !sgS.isQr;   // QR: latar putih = area tenang, jangan dihapus/dipotong
   sgE.thr.disabled = !on;
   sgE.ink.disabled = !on;
   sgE.filt.disabled = !on;
@@ -5048,6 +5801,8 @@ function sgRebuild(){
   sgS.aspect = result.width / result.height;
   sgE.savePng.disabled = false;
   sgE.info.textContent = 'Hasil ' + result.width + ' × ' + result.height + ' px. Kotak-kotak abu berarti bagian yang transparan.';
+  // Tampilkan card Word & Excel setelah TTD siap
+  if(typeof sgShowOfficeCards === 'function') sgShowOfficeCards();
   const pc = sgE.prev;
   pc.width = result.width; pc.height = result.height;
   const pctx = pc.getContext('2d');
@@ -5450,6 +6205,211 @@ sgE.dl.addEventListener('click', async ()=>{
   }
 });
 
+// ================== TTD KE WORD & EXCEL ==================
+
+// Tampilkan card Word & Excel setelah TTD siap (dipanggil dari sgRebuild / sgFinalizeCrop)
+function sgShowOfficeCards(){
+  document.getElementById('sgWordCard').style.display = '';
+  document.getElementById('sgXlsxCard').style.display = '';
+}
+
+// ----- Word (.docx) -----
+(function(){
+  const inDocx = document.getElementById('input-sg-docx');
+  const dzDocx = document.getElementById('dz-sg-docx');
+  const fnDocx = document.getElementById('sg-docx-filename');
+  const dlBtn  = document.getElementById('sgDocxDownloadBtn');
+  const note   = document.getElementById('sgDocxNote');
+  let docxFile = null;
+
+  const setFile = (f)=>{
+    if(!f || !/\.docx$/i.test(f.name)){ showError('Pilih file Word .docx'); return; }
+    docxFile = f; fnDocx.textContent = f.name;
+    dlBtn.disabled = false; note.textContent = '';
+  };
+  inDocx.addEventListener('change', e=>{ if(e.target.files[0]) setFile(e.target.files[0]); e.target.value=''; });
+  setupDrag(dzDocx, setFile, '.docx');
+
+  dlBtn.addEventListener('click', async ()=>{
+    clearError();
+    if(!sgS.sigCanvas){ showError('Tanda tangan belum siap.'); return; }
+    if(!docxFile){ showError('Pilih file Word dulu.'); return; }
+    dlBtn.disabled = true;
+    setStatus('Menyisipkan tanda tangan ke Word...');
+    try{
+      // Ambil PNG tanda tangan
+      const pngBlob = await sgToBlob(sgS.sigCanvas);
+      const pngBytes = new Uint8Array(await pngBlob.arrayBuffer());
+
+      // Baca docx sebagai zip
+      const JSZip = window.JSZip || (await import('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js').then(m=>m.default));
+      if(!window.JSZip && JSZip) window.JSZip = JSZip;
+      const zip = new window.JSZip();
+      await zip.loadAsync(await docxFile.arrayBuffer());
+
+      // Tambah gambar ke media
+      const imgName = 'ttd_' + Date.now() + '.png';
+      zip.file('word/media/' + imgName, pngBytes);
+
+      // Hitung ukuran EMU (1 cm = 360000 EMU)
+      const widthCm = parseFloat(document.getElementById('sgDocxWidth').value) || 4;
+      const aspect = sgS.aspect || 2.5;
+      const widthEmu  = Math.round(widthCm * 360000);
+      const heightEmu = Math.round(widthEmu / aspect);
+
+      // Tambah relasi gambar ke word/_rels/document.xml.rels
+      let relsXml = await zip.file('word/_rels/document.xml.rels').async('string');
+      const relId = 'rIdTTD' + Date.now();
+      relsXml = relsXml.replace('</Relationships>',
+        `<Relationship Id="${relId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/${imgName}"/></Relationships>`);
+      zip.file('word/_rels/document.xml.rels', relsXml);
+
+      // Buat XML paragraf gambar
+      const pos = document.getElementById('sgDocxPos').value;
+      let picXml;
+      if(pos === 'inline'){
+        picXml = `<w:p><w:r><w:rPr/><w:drawing><wp:inline><wp:extent cx="${widthEmu}" cy="${heightEmu}"/><wp:effectExtent l="0" t="0" r="0" b="0"/><wp:docPr id="1" name="TTD"/><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="0" name="TTD"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="${relId}" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${widthEmu}" cy="${heightEmu}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`;
+      } else {
+        picXml = `<w:p><w:r><w:rPr/><w:drawing><wp:anchor distT="0" distB="0" distL="114300" distR="114300" simplePos="0" relativeHeight="251658240" behindDoc="0" locked="0" layoutInCell="1" allowOverlap="1"><wp:simplePos x="0" y="0"/><wp:positionH relativeFrom="column"><wp:posOffset>457200</wp:posOffset></wp:positionH><wp:positionV relativeFrom="paragraph"><wp:posOffset>114300</wp:posOffset></wp:positionV><wp:extent cx="${widthEmu}" cy="${heightEmu}"/><wp:effectExtent l="0" t="0" r="0" b="0"/><wp:wrapNone/><wp:docPr id="2" name="TTD"/><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="0" name="TTD"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="${relId}" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${widthEmu}" cy="${heightEmu}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:anchor></wp:drawing></w:r></w:p>`;
+      }
+
+      // Sisipkan sebelum </w:body>
+      let docXml = await zip.file('word/document.xml').async('string');
+      docXml = docXml.replace(/<\/w:body>/, picXml + '</w:body>');
+      zip.file('word/document.xml', docXml);
+
+      // Generate & unduh
+      const outBlob = await zip.generateAsync({ type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+      const base = docxFile.name.replace(/\.docx$/i,'');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(outBlob);
+      a.download = base + '-bertanda-tangan.docx';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+      setStatus('Selesai! Word bertanda tangan sudah diunduh.');
+      note.textContent = '✓ Selesai! Buka di Word lalu geser tanda tangan ke posisi yang tepat.';
+    }catch(err){
+      console.error(err);
+      showError('Gagal menyisipkan tanda tangan ke Word. ' + (err.message || ''));
+      setStatus('');
+    }finally{ dlBtn.disabled = false; }
+  });
+})();
+
+// ----- Excel (.xlsx) -----
+(function(){
+  const inXlsx = document.getElementById('input-sg-xlsx');
+  const dzXlsx = document.getElementById('dz-sg-xlsx');
+  const fnXlsx = document.getElementById('sg-xlsx-filename');
+  const dlBtn  = document.getElementById('sgXlsxDownloadBtn');
+  const note   = document.getElementById('sgXlsxNote');
+  const sheetSel = document.getElementById('sgXlsxSheet');
+  let xlsxFile = null, xlsxSheets = [];
+
+  const setFile = async (f)=>{
+    if(!f || !/\.xlsx$/i.test(f.name)){ showError('Pilih file Excel .xlsx'); return; }
+    xlsxFile = f; fnXlsx.textContent = f.name;
+    // Baca nama sheet
+    try{
+      const data = await f.arrayBuffer();
+      const wb = XLSX.read(data, { type:'array', bookSheets: true });
+      xlsxSheets = wb.SheetNames || [];
+      sheetSel.innerHTML = xlsxSheets.map((s,i)=>`<option value="${i}">${s}</option>`).join('') || '<option value="0">Sheet1</option>';
+    }catch(e){ sheetSel.innerHTML = '<option value="0">Sheet1</option>'; }
+    dlBtn.disabled = false; note.textContent = '';
+  };
+  inXlsx.addEventListener('change', e=>{ if(e.target.files[0]) setFile(e.target.files[0]); e.target.value=''; });
+  setupDrag(dzXlsx, setFile, '.xlsx');
+
+  dlBtn.addEventListener('click', async ()=>{
+    clearError();
+    if(!sgS.sigCanvas){ showError('Tanda tangan belum siap.'); return; }
+    if(!xlsxFile){ showError('Pilih file Excel dulu.'); return; }
+    dlBtn.disabled = true;
+    setStatus('Menyisipkan tanda tangan ke Excel...');
+    try{
+      const pngBlob = await sgToBlob(sgS.sigCanvas);
+      const pngBytes = new Uint8Array(await pngBlob.arrayBuffer());
+
+      const JSZip = window.JSZip;
+      const zip = new JSZip();
+      await zip.loadAsync(await xlsxFile.arrayBuffer());
+
+      const sheetIdx = parseInt(sheetSel.value) || 0;
+      const sheetName = xlsxSheets[sheetIdx] || 'Sheet1';
+
+      // Tambah gambar ke xl/media
+      const imgName = 'ttd_' + Date.now() + '.png';
+      zip.file('xl/media/' + imgName, pngBytes);
+
+      // Pastikan folder drawings & _rels ada
+      const drawingsRelsPath = 'xl/drawings/_rels/drawing' + (sheetIdx + 1) + '.xml.rels';
+      const drawingPath      = 'xl/drawings/drawing' + (sheetIdx + 1) + '.xml';
+
+      // Tambah/update relasi drawing di sheet
+      const sheetXmlPath = 'xl/worksheets/sheet' + (sheetIdx + 1) + '.xml';
+      const sheetRelsPath = 'xl/worksheets/_rels/sheet' + (sheetIdx + 1) + '.xml.rels';
+
+      // Kolom & baris target
+      const colStr = (document.getElementById('sgXlsxCol').value || 'E').toUpperCase().trim();
+      const rowNum = Math.max(1, parseInt(document.getElementById('sgXlsxRow').value) || 20);
+      const colIdx = colStr.split('').reduce((acc,c)=> acc*26 + (c.charCodeAt(0)-64), 0) - 1;
+      const rowIdx = rowNum - 1;
+      const widthPx = parseInt(document.getElementById('sgXlsxWidth').value) || 120;
+      const heightPx = Math.round(widthPx / (sgS.aspect || 2.5));
+      // EMU: 1px ≈ 9144 EMU (96dpi basis)
+      const widthEmu = widthPx * 9144;
+      const heightEmu = heightPx * 9144;
+
+      // Buat drawing XML
+      const relIdImg = 'rIdTTD1';
+      const drawingXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><xdr:oneCellAnchor><xdr:from><xdr:col>${colIdx}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${rowIdx}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:ext cx="${widthEmu}" cy="${heightEmu}"/><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="2" name="TTD"/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="${relIdImg}"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${widthEmu}" cy="${heightEmu}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:oneCellAnchor></xdr:wsDr>`;
+      zip.file(drawingPath, drawingXml);
+
+      // Buat rels untuk drawing (gambar)
+      const drawingRelsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="${relIdImg}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/${imgName}"/></Relationships>`;
+      zip.file(drawingsRelsPath, drawingRelsXml);
+
+      // Update sheet XML untuk referensikan drawing
+      let sheetXml = zip.file(sheetXmlPath) ? await zip.file(sheetXmlPath).async('string') : null;
+      if(sheetXml){
+        const drawRelId = 'rIdDrw1';
+        const drawingRef = `<drawing r:id="${drawRelId}"/>`;
+        if(!sheetXml.includes('<drawing ')){
+          sheetXml = sheetXml.replace('</worksheet>', drawingRef + '</worksheet>');
+          zip.file(sheetXmlPath, sheetXml);
+        }
+        // Sheet rels
+        let sheetRels = zip.file(sheetRelsPath) ? await zip.file(sheetRelsPath).async('string') : null;
+        const drawRelEntry = `<Relationship Id="${drawRelId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing${sheetIdx+1}.xml"/>`;
+        if(sheetRels){
+          if(!sheetRels.includes('relationships/drawing')){
+            sheetRels = sheetRels.replace('</Relationships>', drawRelEntry + '</Relationships>');
+            zip.file(sheetRelsPath, sheetRels);
+          }
+        } else {
+          zip.file(sheetRelsPath, `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${drawRelEntry}</Relationships>`);
+        }
+      }
+
+      // Generate & unduh
+      const outBlob = await zip.generateAsync({ type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const base = xlsxFile.name.replace(/\.xlsx$/i,'');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(outBlob);
+      a.download = base + '-bertanda-tangan.xlsx';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+      setStatus('Selesai! Excel bertanda tangan sudah diunduh.');
+      note.textContent = '✓ Selesai! Buka di Excel — tanda tangan ada di ' + colStr + rowNum + '.';
+    }catch(err){
+      console.error(err);
+      showError('Gagal menyisipkan tanda tangan ke Excel. ' + (err.message || ''));
+      setStatus('');
+    }finally{ dlBtn.disabled = false; }
+  });
+})();
+
 // ================== KOMPRES PDF ==================
 // Cara kerja: tiap halaman dirender jadi gambar JPEG, lalu disusun ulang jadi PDF baru dengan
 // ukuran halaman asli. Pengaturan (resolusi + kualitas JPEG) dicari otomatis lewat pencarian biner
@@ -5651,6 +6611,87 @@ cpE.dl.addEventListener('click', async ()=>{
 const cpTab = { btn: document.getElementById('tabCompress'), view: document.getElementById('viewCompress') };
 tabs.push(cpTab);
 cpTab.btn.addEventListener('click', ()=> activateTab(cpTab));
+
+
+// ================== BUKA KUNCI PDF ==================
+const ulTab = { btn: document.getElementById('tabUnlock'), view: document.getElementById('viewUnlock') };
+tabs.push(ulTab);
+ulTab.btn.addEventListener('click', ()=> activateTab(ulTab));
+(function(){
+  const $ = id => document.getElementById(id);
+  const S = { bytes:null, name:'dokumen', doc:null, pw:'' };
+  const show = (id, on) => { $(id).style.display = on ? '' : 'none'; };
+  function reset(){
+    if(S.doc){ try{ S.doc.destroy(); }catch(e){} }
+    S.bytes = null; S.doc = null; S.pw = '';
+    show('ulPwCard', false); show('ulEditorCard', false); show('ulUploadCard', true);
+    $('ul-pdf-filename').textContent = '';
+  }
+  async function tryOpen(password){
+    clearError();
+    try{
+      const task = pdfjsLib.getDocument({ data: S.bytes.slice(0), password: password || undefined });
+      S.doc = await task.promise; S.pw = password || '';
+      show('ulPwCard', false); show('ulUploadCard', false); show('ulEditorCard', true);
+      $('ulInfo').textContent = S.name + ' • ' + S.doc.numPages + ' halaman' + (S.pw ? ' • kata sandi diterima' : ' • tanpa kata sandi pembuka (hanya pembatasan)');
+    }catch(err){
+      if(err && err.name === 'PasswordException'){
+        show('ulUploadCard', false); show('ulPwCard', true);
+        $('ulPwMsg').textContent = err.code === 2 ? 'Kata sandi salah. Coba lagi.' : 'Masukkan kata sandi untuk membuka file.';
+        $('ulPw').value = ''; $('ulPw').focus();
+      } else {
+        showError('PDF tidak bisa dibuka: ' + (err && err.message ? err.message : err));
+      }
+    }
+  }
+  async function load(file){
+    if(!file) return;
+    if(file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name)){ showError('Berkas harus berupa PDF.'); return; }
+    S.name = file.name.replace(/\.pdf$/i, '');
+    $('ul-pdf-filename').textContent = file.name;
+    S.bytes = new Uint8Array(await file.arrayBuffer());
+    await tryOpen('');
+  }
+  $('input-ul-pdf').addEventListener('change', e=>{ const f = e.target.files[0]; e.target.value = ''; load(f); });
+  setupDrag($('dz-ul-pdf'), load, 'application/pdf');
+  $('ulPwBtn').addEventListener('click', ()=> tryOpen($('ulPw').value));
+  $('ulPw').addEventListener('keydown', e=>{ if(e.key === 'Enter') tryOpen($('ulPw').value); });
+  $('ulChangeBtn').addEventListener('click', reset);
+  $('ulDownloadBtn').addEventListener('click', async ()=>{
+    if(!S.doc) return;
+    clearError();
+    const btn = $('ulDownloadBtn'); btn.disabled = true;
+    try{
+      const scale = parseFloat($('ulQuality').value);
+      const out = await PDFLib.PDFDocument.create();
+      for(let n = 1; n <= S.doc.numPages; n++){
+        setStatus('Memproses halaman ' + n + ' dari ' + S.doc.numPages + '…');
+        const page = await S.doc.getPage(n);
+        const vp1 = page.getViewport({ scale: 1 });
+        const vp = page.getViewport({ scale });
+        const c = document.createElement('canvas');
+        c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+        await page.render({ canvasContext: ctx, viewport: vp }).promise;
+        const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.92));
+        const img = await out.embedJpg(new Uint8Array(await blob.arrayBuffer()));
+        const pg = out.addPage([vp1.width, vp1.height]);
+        pg.drawImage(img, { x: 0, y: 0, width: vp1.width, height: vp1.height });
+        c.width = c.height = 0;
+      }
+      const bytes = await out.save();
+      const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = S.name + '-terbuka.pdf';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=> URL.revokeObjectURL(url), 5000);
+      setStatus('Selesai. PDF tanpa kunci sudah diunduh.');
+    }catch(err){
+      setStatus(''); showError('Gagal membuka kunci: ' + (err && err.message ? err.message : err));
+    }finally{ btn.disabled = false; }
+  });
+})();
 
 // ================== MENU BURGER (buka/tutup daftar tab) ==================
 const menuToggleBtn = document.getElementById('menuToggleBtn');
@@ -6187,7 +7228,8 @@ tabs.forEach(t=>{
     tabPdfToOffice:['PDF ke Word/Excel','Ubah PDF menjadi file Word atau Excel yang bisa diedit.'],
     tabImages:['Gambar ke PDF','Gabungkan beberapa gambar menjadi satu PDF.'],
     tabPdfToImg:['PDF ke JPG/PNG','Ekspor halaman PDF menjadi gambar JPG atau PNG.'],
-    tabCompress:['Kompres PDF','Kecilkan ukuran file PDF sampai ukuran tujuan yang kamu tentukan.']
+    tabCompress:['Kompres PDF','Kecilkan ukuran file PDF sampai ukuran tujuan yang kamu tentukan.'],
+    tabUnlock:['Buka Kunci PDF','Hapus pembatasan atau kata sandi dari PDF yang kamu berhak membukanya.']
   };
   const t = document.getElementById('toolTitle'), d = document.getElementById('toolDesc');
   Object.keys(info).forEach(id=>{
@@ -7089,6 +8131,163 @@ tabs.forEach(t=>{
   });
   try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(e){
     if(!localStorage.getItem('ap:theme'))apply(e.matches?'dark':'light');});}catch(e){}
+})();
+</script>
+
+<script>
+// ================== BACA QR ==================
+(function(){
+  const $ = id => document.getElementById(id);
+  const btn = $('tabQrRead'), view = $('viewQrRead');
+  const tab = { btn, view }; tabs.push(tab);
+  const nav = $('toolTabsNav');
+  btn.addEventListener('click', ()=>{
+    activateTab(tab);
+    nav.classList.add('tt-closed'); $('menuToggleBtn').classList.remove('active');
+    $('toolTitle').textContent = 'Baca QR';
+    $('toolDesc').textContent = 'Baca isi QR code dari gambar, foto, atau kamera.';
+    document.title = 'Baca QR – Alat PDF'; window.scrollTo({top:0});
+    if(!btn._warm){ btn._warm = true; qrLoadJsQR().catch(()=>{}); }
+  });
+  view.addEventListener('transitionend', ()=>{});
+
+  // ---- decoder: BarcodeDetector bila ada, jsQR (CDN) sebagai cadangan ----
+  let jsqrP = null;
+  function qrLoadJsQR(){
+    if(window.jsQR) return Promise.resolve();
+    if(jsqrP) return jsqrP;
+    jsqrP = new Promise((res, rej)=>{
+      const sc = document.createElement('script');
+      sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js';
+      sc.onload = res; sc.onerror = ()=>{ jsqrP = null; rej(new Error('jsQR gagal dimuat')); };
+      document.head.appendChild(sc);
+    });
+    return jsqrP;
+  }
+  let bd = null;
+  try{ if('BarcodeDetector' in window) bd = new BarcodeDetector({ formats:['qr_code'] }); }catch(_){ bd = null; }
+
+  const work = $('qrWork'), wctx = work.getContext('2d', { willReadFrequently:true });
+  // Coba beberapa variasi (bingkai putih ditambah, ukuran diubah) supaya QR tanpa margin tetap terbaca
+  async function decodeSource(src, w, h){
+    const tries = [];
+    const maxSide = 1400;
+    const base = Math.min(1, maxSide / Math.max(w, h));
+    [[base, 0.12], [base, 0], [base * 0.5, 0.12], [Math.min(1, base * 1.5), 0.12], [base * 0.3, 0.2]].forEach(t=> tries.push(t));
+    for(const [sc, padF] of tries){
+      const sw = Math.max(40, Math.round(w * sc)), sh = Math.max(40, Math.round(h * sc));
+      const pad = Math.round(Math.max(sw, sh) * padF);
+      work.width = sw + pad * 2; work.height = sh + pad * 2;
+      wctx.fillStyle = '#fff'; wctx.fillRect(0, 0, work.width, work.height);
+      wctx.imageSmoothingEnabled = sc >= 1;
+      wctx.drawImage(src, pad, pad, sw, sh);
+      if(bd){
+        try{ const r = await bd.detect(work); if(r && r.length && r[0].rawValue) return r[0].rawValue; }catch(_){}
+      }
+      try{
+        await qrLoadJsQR();
+        const id = wctx.getImageData(0, 0, work.width, work.height);
+        const r = window.jsQR(id.data, id.width, id.height, { inversionAttempts:'attemptBoth' });
+        if(r && r.data) return r.data;
+      }catch(_){ if(!bd) throw new Error('Pembaca QR tidak bisa dimuat. Periksa koneksi internet lalu coba lagi.'); }
+    }
+    return null;
+  }
+
+  // ---- tampilan hasil ----
+  function showResult(text, thumbUrl){
+    $('qrResultCard').style.display = '';
+    $('qrText').value = text;
+    const th = $('qrThumb');
+    if(thumbUrl){ th.src = thumbUrl; th.style.display = ''; } else { th.style.display = 'none'; }
+    // pecah baris "Kunci: Nilai"
+    const box = $('qrFields'); box.textContent = '';
+    const rows = text.split(/\r?\n/).map(l=>{ const m = l.match(/^\s*([^:]{1,40}):\s*(.+)$/); return m ? [m[1], m[2]] : null; }).filter(Boolean);
+    if(rows.length >= 2){
+      const tbl = document.createElement('div');
+      tbl.style.cssText = 'display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);';
+      rows.forEach(([k, v])=>{
+        const a = document.createElement('div'); a.textContent = k; a.style.cssText = 'color:var(--ink-soft);font-weight:600;';
+        const b = document.createElement('div'); b.textContent = v; b.style.cssText = 'word-break:break-word;';
+        tbl.append(a, b);
+      });
+      box.appendChild(tbl); box.style.display = '';
+    } else box.style.display = 'none';
+    const isUrl = /^https?:\/\/\S+$/i.test(text.trim());
+    $('qrOpen').style.display = isUrl ? '' : 'none';
+    $('qrNote').textContent = isUrl ? 'Ini tautan. Pastikan kamu percaya sumbernya sebelum membukanya.' : '';
+    $('qrResultCard').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  function showFail(msg){
+    clearError(); showError(msg);
+    $('qrResultCard').style.display = 'none';
+  }
+
+  async function handleFile(file){
+    clearError(); stopLive();
+    if(!file || !file.type.startsWith('image/')){ showError('Berkas harus berupa gambar.'); return; }
+    setStatus('Membaca QR...');
+    const url = URL.createObjectURL(file);
+    try{
+      const img = await new Promise((res, rej)=>{ const i = new Image(); i.onload = ()=>res(i); i.onerror = ()=>rej(new Error('Gambar tidak bisa dibuka.')); i.src = url; });
+      const text = await decodeSource(img, img.naturalWidth, img.naturalHeight);
+      if(text) showResult(text, url);
+      else showFail('QR tidak terbaca. Pastikan QR terlihat utuh dan tajam, tidak terpotong, lalu coba foto ulang lebih dekat dan terang.');
+    }catch(err){
+      showFail(err.message || 'Gagal membaca gambar.');
+    }finally{ setStatus(''); setTimeout(()=>URL.revokeObjectURL(url), 8000); }
+  }
+  $('qrFile').addEventListener('change', e=>{ const f = e.target.files[0]; if(f) handleFile(f); e.target.value=''; });
+  $('qrCamFile').addEventListener('change', e=>{ const f = e.target.files[0]; if(f) handleFile(f); e.target.value=''; });
+  const dz = $('qrDz');
+  ['dragenter','dragover'].forEach(ev=> dz.addEventListener(ev, e=>{ e.preventDefault(); dz.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(ev=> dz.addEventListener(ev, e=>{ e.preventDefault(); dz.classList.remove('drag'); }));
+  dz.addEventListener('drop', e=>{ const f = e.dataTransfer.files[0]; if(f) handleFile(f); });
+
+  // ---- pindai langsung dengan kamera ----
+  let stream = null, timer = null, busy = false;
+  const video = $('qrVideo');
+  function stopLive(){
+    if(timer){ clearInterval(timer); timer = null; }
+    if(stream){ stream.getTracks().forEach(t=>t.stop()); stream = null; }
+    video.srcObject = null; $('qrLiveBox').style.display = 'none';
+  }
+  $('qrStopBtn').addEventListener('click', stopLive);
+  $('qrLiveBtn').addEventListener('click', async ()=>{
+    clearError();
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      showError('Kamera langsung tidak tersedia di sini. Pakai tombol "Foto dengan kamera" saja.'); return;
+    }
+    try{
+      await qrLoadJsQR().catch(()=>{});
+      stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:'environment' }, width:{ ideal:1280 } }, audio:false });
+      video.srcObject = stream; await video.play();
+      $('qrLiveBox').style.display = '';
+      timer = setInterval(async ()=>{
+        if(busy || !video.videoWidth) return;
+        busy = true;
+        try{
+          const text = await decodeSource(video, video.videoWidth, video.videoHeight);
+          if(text){ stopLive(); showResult(text, null); }
+        }catch(_){} finally{ busy = false; }
+      }, 450);
+    }catch(err){
+      stopLive();
+      showError('Kamera tidak bisa dibuka (izin ditolak atau tidak didukung). Pakai tombol "Foto dengan kamera" sebagai gantinya.');
+    }
+  });
+  tabs.forEach(t=>{ if(t !== tab) t.btn.addEventListener('click', stopLive); });
+
+  $('qrCopy').addEventListener('click', async ()=>{
+    const v = $('qrText').value;
+    try{ await navigator.clipboard.writeText(v); }
+    catch(_){ const ta = $('qrText'); ta.select(); try{ document.execCommand('copy'); }catch(__){} }
+    setStatus('Isi QR disalin.'); setTimeout(()=> setStatus(''), 2000);
+  });
+  $('qrOpen').addEventListener('click', ()=>{
+    const v = $('qrText').value.trim();
+    if(/^https?:\/\/\S+$/i.test(v)) window.open(v, '_blank', 'noopener');
+  });
 })();
 </script>
 </body>
