@@ -8290,5 +8290,334 @@ tabs.forEach(t=>{
   });
 })();
 </script>
+<style>
+  .xi-opts{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-end;margin:4px 0 6px;}
+  .xi-f{display:flex;flex-direction:column;gap:5px;min-width:0;}
+  .xi-f > span.l{font-size:12.5px;font-weight:600;color:var(--ink-soft);}
+  .xi-f select,.xi-f input[type=number]{min-height:40px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--paper-card);color:var(--ink);font-size:14px;}
+  .xi-f input[type=number]{width:120px;}
+  .xi-f input[type=range]{width:170px;}
+  .xi-q{font-weight:700;color:var(--head);}
+  .xi-meta{font-size:12px;color:var(--ink-soft);font-weight:500;margin-top:2px;}
+  .xi-meta b{color:var(--good);}
+  .xi-meta .warn{color:var(--ink-soft);}
+  .xi-dl{padding:7px 12px !important;font-size:12.5px !important;flex:none;}
+</style>
+<script>
+// ================== KOMPRES JPG/PNG & JPG KE PDF ==================
+(function(){
+  const $=(s,r=document)=>r.querySelector(s);
+  const nav=$('#toolTabsNav'), host=$('#viewImages').parentNode;
+  const IC=d=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+d+'"/></svg>';
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const fmt=n=>n<1024?n+' B':n<1048576?(n/1024).toFixed(n<10240?1:0)+' KB':(n/1048576).toFixed(2)+' MB';
+  const baseName=n=>n.replace(/\.[^.]+$/,'');
+  const ARROW='<div class="home-tool-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>';
+  let uid=0;
+
+  function download(blob,name){
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  }
+  function toBlob(c,type,q){return new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('Gagal membuat gambar.')),type,q));}
+  async function loadImg(file){
+    try{
+      const bm=await createImageBitmap(file);
+      return {src:bm,w:bm.width,h:bm.height,close(){try{bm.close();}catch(e){}}};
+    }catch(e){
+      const url=URL.createObjectURL(file);
+      try{
+        const im=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('Gambar "'+file.name+'" tidak bisa dibuka.'));i.src=url;});
+        return {src:im,w:im.naturalWidth,h:im.naturalHeight,close(){URL.revokeObjectURL(url);}};
+      }catch(err){URL.revokeObjectURL(url);throw err;}
+    }
+  }
+  const isImg=f=>/^image\/(jpeg|png|webp)$/i.test(f.type)||/\.(jpe?g|png|webp)$/i.test(f.name);
+
+  // ---------- pendaftaran tab ----------
+  function addTab(o){
+    const btn=document.createElement('button'); btn.className='tool-tab'; btn.type='button'; btn.id=o.id;
+    btn.innerHTML=IC(o.icon)+'<span>'+o.title+'</span>';
+    $(o.after).after(btn);
+    const view=document.createElement('div'); view.id=o.viewId; view.style.display='none'; view.innerHTML=o.html;
+    host.appendChild(view);
+    const tab={btn,view}; tabs.push(tab);
+    btn.addEventListener('click',()=>{
+      activateTab(tab); nav.classList.add('tt-closed'); $('#menuToggleBtn').classList.remove('active');
+      $('#toolTitle').textContent=o.title; $('#toolDesc').textContent=o.desc;
+      document.title=o.title+' – Alat PDF'; window.scrollTo({top:0});
+    });
+    const card=document.createElement('button'); card.className='home-tool-card'; card.type='button'; card.dataset.tab=o.id;
+    card.innerHTML='<div class="home-tool-icon '+o.color+'">'+IC(o.icon)+'</div><div class="home-tool-name">'+o.title+'</div><p class="home-tool-desc">'+o.homeDesc+'</p>'+ARROW;
+    $('#homeGridKonversi').appendChild(card);
+    card.addEventListener('click',()=>{btn.click();window.scrollTo({top:0,behavior:'smooth'});});
+    return {btn,view};
+  }
+  const DZ_ICON=IC('M3 5h18v14H3zM3 16l5-5 4 4 3-3 6 6M9 9.5h.01');
+
+  // =====================================================================
+  //  1) KOMPRES JPG / PNG
+  // =====================================================================
+  const cm=addTab({
+    id:'tabImgCompress', viewId:'viewImgCompress', title:'Kompres JPG/PNG',
+    desc:'Kecilkan ukuran foto JPG atau PNG tanpa mengubah tampilannya terlalu jauh.',
+    homeDesc:'Kecilkan ukuran foto JPG/PNG, bisa atur kualitas atau target ukuran (KB).',
+    icon:'M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7', color:'ic-green', after:'#tabPdfToImg',
+    html:
+    '<div class="card"><h2>Unggah gambar (JPG/PNG)</h2>'+
+    '<p class="sub">Pilih satu atau banyak foto sekaligus. Hasil kompres bisa diunduh satu per satu atau semuanya sebagai ZIP. Diproses di browser, tidak diunggah ke server.</p>'+
+    '<div class="drop-row" style="grid-template-columns:1fr;"><label class="dropzone" id="icDz"><input type="file" id="icInput" accept="image/jpeg,image/png,image/webp" multiple>'+
+    '<span class="icon">'+DZ_ICON+'</span><span class="label">Pilih atau seret foto JPG/PNG</span><span class="hint">Bisa pilih lebih dari satu file</span></label></div></div>'+
+    '<div class="card" id="icCard" style="display:none;"><h2>Pengaturan &amp; hasil</h2><p class="sub" id="icInfo"></p>'+
+    '<div class="xi-opts">'+
+      '<label class="xi-f"><span class="l">Kualitas JPG: <span class="xi-q" id="icQv">70</span>%</span><input type="range" id="icQ" min="30" max="95" value="70"></label>'+
+      '<label class="xi-f"><span class="l">Ukuran maksimal (sisi terpanjang)</span><select id="icMax"><option value="0">Ukuran asli</option><option value="3000">3000 px</option><option value="2000" selected>2000 px (disarankan)</option><option value="1600">1600 px</option><option value="1280">1280 px</option><option value="1024">1024 px</option><option value="800">800 px</option></select></label>'+
+      '<label class="xi-f"><span class="l">Format hasil</span><select id="icFmt"><option value="same">Sama dengan aslinya</option><option value="jpg">Jadikan JPG (paling kecil)</option></select></label>'+
+      '<label class="xi-f"><span class="l">Target ukuran (KB, opsional)</span><input type="number" id="icTarget" min="20" step="10" placeholder="mis. 200"></label>'+
+    '</div>'+
+    '<p class="sub" style="margin:10px 0 14px;font-size:12.5px;">Kualitas hanya berpengaruh pada JPG. PNG dikecilkan lewat ukuran maksimal atau target KB. Kalau target KB diisi, kualitas diatur otomatis. PNG transparan yang dijadikan JPG akan berlatar putih.</p>'+
+    '<div id="icList" class="images-list"></div>'+
+    '<div class="hint-row"><span class="note" id="icNote"></span>'+
+      '<button class="btn ghost" id="icAdd" type="button">+ Tambah foto</button>'+
+      '<button class="btn ghost" id="icZip" type="button" style="display:none;">Unduh semua (ZIP)</button>'+
+      '<button class="btn gold" id="icGo" type="button">Kompres</button></div></div>'
+  });
+  (function(){
+    const v=cm.view, input=$('#icInput',v), dz=$('#icDz',v), card=$('#icCard',v), list=$('#icList',v), info=$('#icInfo',v), note=$('#icNote',v),
+          go=$('#icGo',v), zipBtn=$('#icZip',v), qEl=$('#icQ',v), qv=$('#icQv',v), maxEl=$('#icMax',v), fmtEl=$('#icFmt',v), tgEl=$('#icTarget',v);
+    let items=[]; // {id,file,url,res}
+
+    qEl.addEventListener('input',()=>{qv.textContent=qEl.value;});
+    function addFiles(fl){
+      const ok=[...fl].filter(isImg);
+      if(!ok.length){showError('Pilih file gambar JPG atau PNG.');return;}
+      clearError();
+      ok.forEach(f=>items.push({id:++uid,file:f,url:URL.createObjectURL(f),res:null}));
+      render();
+    }
+    input.addEventListener('change',e=>{addFiles(e.target.files);e.target.value='';});
+    ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag');}));
+    ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag');}));
+    dz.addEventListener('drop',e=>addFiles(e.dataTransfer.files));
+    $('#icAdd',v).addEventListener('click',()=>input.click());
+
+    function render(){
+      card.style.display=items.length?'':'none';
+      info.textContent=items.length+' foto dipilih, total '+fmt(items.reduce((s,i)=>s+i.file.size,0))+'.';
+      list.innerHTML=items.map(it=>{
+        let meta='<div class="xi-meta">'+fmt(it.file.size)+'</div>';
+        if(it.res){
+          const r=it.res;
+          meta=r.kept
+            ? '<div class="xi-meta">'+fmt(it.file.size)+' <span class="warn">· sudah optimal, file asli dipertahankan</span></div>'
+            : '<div class="xi-meta">'+fmt(it.file.size)+' → <b>'+fmt(r.blob.size)+'</b> (hemat '+Math.max(0,Math.round((1-r.blob.size/it.file.size)*100))+'%) · '+r.w+'×'+r.h+' px</div>';
+        }
+        return '<div class="image-item" data-id="'+it.id+'"><img src="'+it.url+'" alt="">'+
+          '<div class="name">'+esc(it.file.name)+meta+'</div>'+
+          (it.res?'<button class="btn ghost xi-dl" type="button" data-act="dl">Unduh</button>':'')+
+          '<div class="order-btns"><button type="button" class="remove-btn" data-act="rm" title="Hapus">✕</button></div></div>';
+      }).join('');
+      const done=items.filter(i=>i.res);
+      zipBtn.style.display=done.length>1?'':'none';
+      go.textContent=done.length?'Kompres ulang':'Kompres';
+      go.disabled=!items.length;
+    }
+    list.addEventListener('click',e=>{
+      const b=e.target.closest('button[data-act]'); if(!b) return;
+      const it=items.find(i=>i.id===+b.closest('.image-item').dataset.id); if(!it) return;
+      if(b.dataset.act==='rm'){URL.revokeObjectURL(it.url);items=items.filter(i=>i!==it);render();}
+      else if(it.res) download(it.res.blob,it.res.name);
+    });
+
+    async function compressOne(file,o){
+      const im=await loadImg(file);
+      try{
+        const isPng=/png/i.test(file.type)||/\.png$/i.test(file.name);
+        const toJpg=o.fmt==='jpg'||!isPng;
+        const formatChanged=toJpg!==(!isPng);
+        let scale=o.max>0?Math.min(1,o.max/Math.max(im.w,im.h)):1;
+        const startScale=scale;
+        const draw=sc=>{
+          const w=Math.max(1,Math.round(im.w*sc)),h=Math.max(1,Math.round(im.h*sc));
+          const c=document.createElement('canvas'); c.width=w; c.height=h;
+          const x=c.getContext('2d');
+          if(toJpg){x.fillStyle='#fff';x.fillRect(0,0,w,h);}
+          x.imageSmoothingQuality='high'; x.drawImage(im.src,0,0,w,h); return c;
+        };
+        const enc=(c,q)=>toBlob(c,toJpg?'image/jpeg':'image/png',q);
+        let c=draw(scale), b=null;
+        if(o.target>0){
+          const tb=o.target*1024;
+          for(let i=0;i<10;i++){
+            if(toJpg){
+              let lo=.2,hi=.95,best=null;
+              for(let k=0;k<7;k++){const m=(lo+hi)/2;const t=await enc(c,m);if(t.size<=tb){best=t;lo=m;}else hi=m;}
+              if(best){b=best;break;}
+              b=await enc(c,.2);
+            }else{
+              b=await enc(c); if(b.size<=tb) break;
+            }
+            if(Math.max(c.width,c.height)<320) break;
+            scale*=.82; c.width=0; c=draw(scale);
+          }
+        }else b=await enc(c,o.q);
+        const w=c.width,h=c.height; c.width=0;
+        if(!formatChanged && startScale>=1 && b.size>=file.size)
+          return {blob:file,name:file.name,w:im.w,h:im.h,kept:true};
+        return {blob:b,name:baseName(file.name)+'-kompres.'+(toJpg?'jpg':'png'),w,h,kept:false};
+      }finally{im.close();}
+    }
+
+    go.addEventListener('click',async()=>{
+      if(!items.length) return;
+      clearError(); go.disabled=true;
+      const tg=parseInt(tgEl.value,10);
+      const o={q:+qEl.value/100,max:+maxEl.value,fmt:fmtEl.value,target:tg>0?tg:0};
+      try{
+        for(let i=0;i<items.length;i++){
+          setStatus('Mengompres '+(i+1)+' dari '+items.length+'...');
+          try{items[i].res=await compressOne(items[i].file,o);}
+          catch(err){items[i].res=null;showError(err.message||'Gagal mengompres salah satu foto.');}
+          await new Promise(r=>setTimeout(r,0));
+        }
+        render();
+        const done=items.filter(i=>i.res&&!i.res.kept);
+        const before=done.reduce((s,i)=>s+i.file.size,0), after=done.reduce((s,i)=>s+i.res.blob.size,0);
+        note.textContent=done.length?('Total '+fmt(before)+' menjadi '+fmt(after)+'.'):'';
+        setStatus('Selesai! Klik "Unduh" pada tiap foto'+(items.length>1?' atau unduh semuanya sebagai ZIP.':'.'));
+      }finally{go.disabled=!items.length;}
+    });
+
+    zipBtn.addEventListener('click',async()=>{
+      const done=items.filter(i=>i.res);
+      if(!done.length) return;
+      try{
+        if(typeof JSZip==='undefined') throw new Error('Pustaka ZIP belum termuat. Periksa koneksi internet lalu coba lagi.');
+        setStatus('Menyiapkan ZIP...');
+        const z=new JSZip(), used={};
+        done.forEach(i=>{let n=i.res.name; if(used[n]){const m=n.match(/^(.*?)(\.[^.]+)?$/);n=m[1]+'-'+(used[n]++)+(m[2]||'');}else used[n]=1; z.file(n,i.res.blob);});
+        download(await z.generateAsync({type:'blob'}),'foto-kompres.zip');
+        setStatus('Selesai! ZIP sudah diunduh.');
+      }catch(err){showError(err.message||'Gagal membuat ZIP.');setStatus('');}
+    });
+    render();
+  })();
+
+  // =====================================================================
+  //  2) JPG KE PDF
+  // =====================================================================
+  const jp=addTab({
+    id:'tabJpgPdf', viewId:'viewJpgPdf', title:'JPG ke PDF',
+    desc:'Ubah foto JPG/PNG jadi PDF: atur urutan, ukuran kertas, orientasi, margin, dan kualitas.',
+    homeDesc:'Ubah foto JPG/PNG jadi PDF. Atur kertas (A4, F4, Letter), margin, dan kualitas.',
+    icon:'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M8 17l2.5-3 2 2 1.5-1.5 2 2.5', color:'ic-teal', after:'#tabImages',
+    html:
+    '<div class="card"><h2>Unggah foto (JPG/PNG)</h2>'+
+    '<p class="sub">Pilih satu atau banyak foto. Satu foto menjadi satu halaman PDF, urutannya bisa diatur. Diproses di browser, tidak diunggah ke server.</p>'+
+    '<div class="drop-row" style="grid-template-columns:1fr;"><label class="dropzone" id="jpDz"><input type="file" id="jpInput" accept="image/jpeg,image/png" multiple>'+
+    '<span class="icon">'+DZ_ICON+'</span><span class="label">Pilih atau seret foto JPG/PNG</span><span class="hint">Bisa pilih lebih dari satu file</span></label></div></div>'+
+    '<div class="card" id="jpCard" style="display:none;"><h2>Urutan &amp; pengaturan halaman</h2><p class="sub" id="jpInfo"></p>'+
+    '<div id="jpList" class="images-list"></div>'+
+    '<div class="xi-opts" style="margin-top:16px;">'+
+      '<label class="xi-f"><span class="l">Ukuran kertas</span><select id="jpPaper"><option value="a4">A4</option><option value="f4">F4 / Folio</option><option value="letter">Letter</option><option value="fit">Sesuai ukuran foto</option></select></label>'+
+      '<label class="xi-f"><span class="l">Orientasi</span><select id="jpOri"><option value="auto">Otomatis (ikut foto)</option><option value="p">Potret</option><option value="l">Lanskap</option></select></label>'+
+      '<label class="xi-f"><span class="l">Margin</span><select id="jpMar"><option value="0">Tanpa margin</option><option value="28">Kecil (10 mm)</option><option value="57">Sedang (20 mm)</option></select></label>'+
+      '<label class="xi-f"><span class="l">Kualitas / ukuran file</span><select id="jpQ"><option value="hi">Tinggi (file besar)</option><option value="mid" selected>Sedang (disarankan)</option><option value="lo">Hemat (file kecil)</option></select></label>'+
+    '</div>'+
+    '<div class="hint-row"><span class="note" id="jpNote">Foto dimuat utuh di dalam halaman tanpa terpotong, dan diletakkan di tengah.</span>'+
+      '<button class="btn ghost" id="jpAdd" type="button">+ Tambah foto</button>'+
+      '<button class="btn gold" id="jpGo" type="button">Buat PDF &amp; unduh</button></div></div>'
+  });
+  (function(){
+    const v=jp.view, input=$('#jpInput',v), dz=$('#jpDz',v), card=$('#jpCard',v), list=$('#jpList',v), info=$('#jpInfo',v),
+          go=$('#jpGo',v), paperEl=$('#jpPaper',v), oriEl=$('#jpOri',v), marEl=$('#jpMar',v), qEl=$('#jpQ',v);
+    let items=[];
+    const SIZES={a4:[595.28,841.89],f4:[609.45,935.43],letter:[612,792]};
+    const QUAL={hi:{q:.92,max:0},mid:{q:.8,max:2400},lo:{q:.65,max:1600}};
+
+    function addFiles(fl){
+      const ok=[...fl].filter(f=>/^image\/(jpeg|png)$/i.test(f.type)||/\.(jpe?g|png)$/i.test(f.name));
+      if(!ok.length){showError('Pilih file gambar JPG atau PNG.');return;}
+      clearError();
+      ok.forEach(f=>items.push({id:++uid,file:f,url:URL.createObjectURL(f)}));
+      render();
+    }
+    input.addEventListener('change',e=>{addFiles(e.target.files);e.target.value='';});
+    ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag');}));
+    ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag');}));
+    dz.addEventListener('drop',e=>addFiles(e.dataTransfer.files));
+    $('#jpAdd',v).addEventListener('click',()=>input.click());
+    paperEl.addEventListener('change',()=>{oriEl.disabled=paperEl.value==='fit';});
+
+    function render(){
+      card.style.display=items.length?'':'none';
+      info.textContent=items.length+' foto, jadi '+items.length+' halaman PDF.';
+      list.innerHTML=items.map((it,i)=>
+        '<div class="image-item" data-id="'+it.id+'"><img src="'+it.url+'" alt="">'+
+        '<div class="name">'+(i+1)+'. '+esc(it.file.name)+'<div class="xi-meta">'+fmt(it.file.size)+'</div></div>'+
+        '<div class="order-btns"><button type="button" data-act="up" title="Naik"'+(i===0?' disabled':'')+'>↑</button>'+
+        '<button type="button" data-act="down" title="Turun"'+(i===items.length-1?' disabled':'')+'>↓</button>'+
+        '<button type="button" class="remove-btn" data-act="rm" title="Hapus">✕</button></div></div>').join('');
+      go.disabled=!items.length;
+    }
+    list.addEventListener('click',e=>{
+      const b=e.target.closest('button[data-act]'); if(!b) return;
+      const id=+b.closest('.image-item').dataset.id, i=items.findIndex(x=>x.id===id); if(i<0) return;
+      if(b.dataset.act==='rm'){URL.revokeObjectURL(items[i].url);items.splice(i,1);}
+      else if(b.dataset.act==='up'&&i>0){[items[i-1],items[i]]=[items[i],items[i-1]];}
+      else if(b.dataset.act==='down'&&i<items.length-1){[items[i+1],items[i]]=[items[i],items[i+1]];}
+      render();
+    });
+
+    go.addEventListener('click',async()=>{
+      if(!items.length) return;
+      clearError(); go.disabled=true;
+      try{
+        if(typeof PDFLib==='undefined') throw new Error('Pustaka PDF belum termuat. Periksa koneksi internet lalu coba lagi.');
+        const doc=await PDFLib.PDFDocument.create();
+        const qs=QUAL[qEl.value], m=+marEl.value, paper=paperEl.value, ori=oriEl.value;
+        for(let i=0;i<items.length;i++){
+          setStatus('Memproses foto '+(i+1)+' dari '+items.length+'...');
+          const im=await loadImg(items[i].file);
+          let bytes,w,h;
+          try{
+            const sc=qs.max>0?Math.min(1,qs.max/Math.max(im.w,im.h)):1;
+            w=Math.max(1,Math.round(im.w*sc)); h=Math.max(1,Math.round(im.h*sc));
+            const c=document.createElement('canvas'); c.width=w; c.height=h;
+            const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,w,h);
+            x.imageSmoothingQuality='high'; x.drawImage(im.src,0,0,w,h);
+            bytes=new Uint8Array(await (await toBlob(c,'image/jpeg',qs.q)).arrayBuffer());
+            c.width=0;
+          }finally{im.close();}
+          const img=await doc.embedJpg(bytes);
+          let pw,ph;
+          if(paper==='fit'){
+            let s=.75; if(Math.max(w,h)*s>1500) s=1500/Math.max(w,h);
+            pw=w*s+2*m; ph=h*s+2*m;
+          }else{
+            [pw,ph]=SIZES[paper];
+            const land=ori==='l'||(ori==='auto'&&w>h);
+            if(land&&pw<ph) [pw,ph]=[ph,pw];
+            if(!land&&pw>ph) [pw,ph]=[ph,pw];
+          }
+          const bw=pw-2*m, bh=ph-2*m, k=Math.min(bw/w,bh/h), dw=w*k, dh=h*k;
+          const page=doc.addPage([pw,ph]);
+          page.drawImage(img,{x:(pw-dw)/2,y:(ph-dh)/2,width:dw,height:dh});
+          await new Promise(r=>setTimeout(r,0));
+        }
+        setStatus('Menyusun PDF...');
+        const out=await doc.save();
+        const first=baseName(items[0].file.name);
+        download(new Blob([out],{type:'application/pdf'}),first+(items.length>1?'-gabungan':'')+'.pdf');
+        setStatus('Selesai! PDF ('+fmt(out.length)+') sudah diunduh.');
+      }catch(err){
+        console.error(err); showError(err.message||'Gagal membuat PDF.'); setStatus('');
+      }finally{go.disabled=!items.length;}
+    });
+    render();
+  })();
+})();
+</script>
+
 </body>
 </html>
