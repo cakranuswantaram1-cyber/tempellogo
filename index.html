@@ -9213,12 +9213,26 @@ tabs.forEach(t=>{
         '<label class="sf-check"><input type="checkbox" id="sfSkew" checked> Miringkan halaman sedikit (acak tiap halaman)</label>'+
         '<label class="sf-check"><input type="checkbox" id="sfShadow" checked> Bayangan tepi kertas &amp; cahaya tidak merata</label>'+
         '<label class="sf-check"><input type="checkbox" id="sfDust" checked> Bintik debu &amp; butiran halus</label>'+
+        '<div style="border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:10px;">'+
+          '<label class="sf-check"><input type="checkbox" id="sfSplit"> Pecah hasil jadi beberapa file PDF</label>'+
+          '<div id="sfSplitBox" style="display:none;flex-direction:column;gap:10px;">'+
+            '<label class="xi-f"><span class="l">Pecah berdasarkan</span><select id="sfSplitBy">'+OPT('parts','Jumlah file',1)+OPT('pp','Jumlah halaman per file')+'</select></label>'+
+            '<label class="xi-f"><span class="l" id="sfSplitL">Jadi berapa file?</span><input type="number" id="sfSplitN" min="1" step="1" value="10" inputmode="numeric"></label>'+
+            '<p class="note" id="sfSplitInfo" style="margin:0;font-size:12.5px;"></p>'+
+          '</div>'+
+        '</div>'+
       '</div>'+
       '<p class="sub" style="margin:12px 0 0;font-size:12.5px;">Teks di hasil scan tidak bisa dipilih atau disalin, sama seperti scan asli. Simpan file aslinya kalau masih perlu diedit.</p>'+
     '</div><div class="sf-prev"><h4>Pratinjau halaman 1 <span id="sfPrevNote" style="font-weight:500;"></span></h4><div id="sfPrevBox"><div class="sf-empty">Memuat pratinjau...</div></div>'+
       '<button class="btn ghost" id="sfReroll" type="button" style="margin-top:10px;">Acak ulang tampilan</button></div></div>'+
     '<div class="sf-bar" id="sfBar"><i id="sfBarI"></i></div>'+
-    '<div class="hint-row"><span class="note" id="sfNote"></span><button class="btn gold" id="sfGo" type="button" disabled>Buat hasil scan &amp; unduh</button></div></div>';
+    '<div class="hint-row"><span class="note" id="sfNote"></span><button class="btn gold" id="sfGo" type="button" disabled>Buat hasil scan &amp; unduh</button></div></div>'+
+    '<div class="card" id="mgCard"><h2>Sambungkan (gabungkan) PDF</h2>'+
+    '<p class="sub">Pilih beberapa file PDF, misalnya hasil pecahan di atas, lalu gabungkan jadi satu. Urutan otomatis menurut nama file (bagian-01, bagian-02, dst) dan bisa digeser. Diproses di browser, tidak diunggah ke server.</p>'+
+    '<div class="drop-row" style="grid-template-columns:1fr;"><label class="dropzone" id="mgDz"><input type="file" id="mgInput" multiple accept="application/pdf,.pdf">'+
+    '<span class="icon">'+IC('M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5')+'</span><span class="label">Pilih beberapa file PDF</span><span class="hint">atau seret ke sini</span></label></div>'+
+    '<div id="mgList" style="margin-top:12px;display:flex;flex-direction:column;gap:6px;"></div>'+
+    '<div class="hint-row"><span class="note" id="mgNote"></span><button class="btn gold" id="mgGo" type="button" disabled>Sambungkan &amp; unduh</button></div></div>';
   host.appendChild(view);
   const tab={btn,view}; tabs.push(tab);
   btn.addEventListener('click',()=>{
@@ -9517,7 +9531,7 @@ tabs.forEach(t=>{
     try{
       setStatus('Membaca '+f.name+'...');
       src=isPdf(f)?await openPdf(f):await openWord(f);
-      infoEl.textContent=f.name+' · '+src.kind+' · '+src.count+' halaman · '+fmt(f.size);
+      infoEl.textContent=f.name+' · '+src.kind+' · '+src.count+' halaman · '+fmt(f.size); updSplit();
       goBtn.disabled=false; noteEl.textContent='';
       setStatus('');
       await buildPreviewBase();
@@ -9538,27 +9552,70 @@ tabs.forEach(t=>{
     const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
   }
+  // ---------- pecah ----------
+  const spOn=$('#sfSplit',view), spBox=$('#sfSplitBox',view), spBy=$('#sfSplitBy',view), spN=$('#sfSplitN',view),
+        spL=$('#sfSplitL',view), spInfo=$('#sfSplitInfo',view);
+  function splitPlan(n){
+    if(!spOn.checked||n<2)return [[0,n]];
+    let v=Math.floor(+spN.value); if(!(v>=1))v=1;
+    const out=[];
+    if(spBy.value==='pp'){
+      for(let a=0;a<n;a+=v)out.push([a,Math.min(n,a+v)]);
+    }else{
+      const k=Math.min(v,n), base=Math.floor(n/k), rem=n%k; let a=0;
+      for(let j=0;j<k;j++){const sz=base+(j<rem?1:0);out.push([a,a+sz]);a+=sz;}
+    }
+    return out;
+  }
+  function updSplit(){
+    spBox.style.display=spOn.checked?'flex':'none';
+    spL.textContent=spBy.value==='pp'?'Berapa halaman tiap file?':'Jadi berapa file?';
+    if(!spOn.checked){spInfo.textContent='';return;}
+    if(!src){spInfo.textContent='';return;}
+    const r=splitPlan(src.count), sizes=r.map(x=>x[1]-x[0]), mn=Math.min(...sizes), mx=Math.max(...sizes);
+    spInfo.textContent=src.count+' halaman → '+r.length+' file, '+(mn===mx?mn+' halaman per file':mn+'–'+mx+' halaman per file')+'. Hasil diunduh dalam satu file ZIP.';
+  }
+  [spOn,spBy,spN].forEach(el=>el.addEventListener('input',updSplit)); spOn.addEventListener('change',updSplit); spBy.addEventListener('change',updSplit);
+
   goBtn.addEventListener('click',async()=>{
     if(!src||running)return;
     running=true; clearError(); goBtn.disabled=true; barWrap.style.display='block'; barI.style.width='0';
-    const o=opts(), n=src.count;
+    const o=opts(), n=src.count, plan=splitPlan(n), K=plan.length, pad=Math.max(2,String(K).length);
     try{
-      const {PDFDocument}=PDFLib, out=await PDFDocument.create();
+      const {PDFDocument}=PDFLib, results=[];
+      let cur=null, pi=0;
       for(let i=0;i<n;i++){
         setStatus('Membuat hasil scan... halaman '+(i+1)+' dari '+n);
         barI.style.width=Math.round(i/n*100)+'%';
+        if(!cur)cur=await PDFDocument.create();
         const pg=await src.page(i,o.dpi);
         const sc=scanCanvas(pg.cv,o,seed+i*101);
         pg.cv.width=0;
         const jpg=await canvasJpg(sc,o.q); sc.width=0;
-        const img=await out.embedJpg(jpg);
-        out.addPage([pg.wPt,pg.hPt]).drawImage(img,{x:0,y:0,width:pg.wPt,height:pg.hPt});
+        const img=await cur.embedJpg(jpg);
+        cur.addPage([pg.wPt,pg.hPt]).drawImage(img,{x:0,y:0,width:pg.wPt,height:pg.hPt});
+        if(i+1===plan[pi][1]){
+          setStatus('Menyusun file '+(pi+1)+' dari '+K+'...');
+          const bytes=await cur.save(); cur=null;
+          results.push({name:baseName(file.name)+(K>1?'-scan-bagian-'+String(pi+1).padStart(pad,'0')+'-dari-'+K:'-scan')+'.pdf',bytes});
+          pi++;
+        }
         await sleep(0);
       }
-      barI.style.width='100%'; setStatus('Menyusun PDF...');
-      const bytes=await out.save();
-      download(new Blob([bytes],{type:'application/pdf'}),baseName(file.name)+'-scan.pdf');
-      setStatus('Selesai! PDF hasil scan ('+fmt(bytes.length)+', '+n+' halaman) sudah diunduh.');
+      barI.style.width='100%';
+      if(results.length===1){
+        download(new Blob([results[0].bytes],{type:'application/pdf'}),results[0].name);
+        setStatus('Selesai! PDF hasil scan ('+fmt(results[0].bytes.length)+', '+n+' halaman) sudah diunduh.');
+      }else if(typeof JSZip!=='undefined'){
+        setStatus('Membuat file ZIP...');
+        const z=new JSZip(); results.forEach(r=>z.file(r.name,r.bytes));
+        const blob=await z.generateAsync({type:'blob',compression:'STORE'});
+        download(blob,baseName(file.name)+'-scan-pecah.zip');
+        setStatus('Selesai! '+n+' halaman dipecah jadi '+K+' file PDF (ZIP, '+fmt(blob.size)+') sudah diunduh.');
+      }else{
+        for(const r of results){download(new Blob([r.bytes],{type:'application/pdf'}),r.name);await sleep(500);}
+        setStatus('Selesai! '+K+' file PDF sudah diunduh. Kalau ada yang tidak terunduh, izinkan unduhan berganda di browser.');
+      }
     }catch(err){
       console.error(err);
       showError(err.message&&!/^(\w+Error|Failed)/.test(err.message)?err.message:'Gagal membuat hasil scan. Coba turunkan resolusi (mis. 100 atau 150 dpi) lalu ulangi.');
@@ -9567,6 +9624,60 @@ tabs.forEach(t=>{
       running=false; goBtn.disabled=!src; setTimeout(()=>{barWrap.style.display='none';},1500);
     }
   });
+
+  // ---------- sambungkan PDF ----------
+  const mgIn=$('#mgInput',view), mgDz=$('#mgDz',view), mgList=$('#mgList',view), mgGo=$('#mgGo',view), mgNote=$('#mgNote',view);
+  let mgFiles=[], mgRunning=false;
+  const natCmp=(a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'});
+  function mgRender(){
+    mgList.innerHTML='';
+    mgFiles.forEach((f,i)=>{
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;gap:6px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);font-size:13px;';
+      const nm=document.createElement('span'); nm.style.cssText='flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+      nm.textContent=(i+1)+'. '+f.name+' ('+fmt(f.size)+')';
+      row.appendChild(nm);
+      const mk=(t,title,fn,dis)=>{const b=document.createElement('button');b.type='button';b.className='btn ghost';b.textContent=t;b.title=title;b.disabled=!!dis;b.style.cssText='padding:4px 10px;min-height:32px;';b.addEventListener('click',fn);row.appendChild(b);};
+      mk('↑','Naik',()=>{[mgFiles[i-1],mgFiles[i]]=[mgFiles[i],mgFiles[i-1]];mgRender();},i===0);
+      mk('↓','Turun',()=>{[mgFiles[i+1],mgFiles[i]]=[mgFiles[i],mgFiles[i+1]];mgRender();},i===mgFiles.length-1);
+      mk('✕','Hapus',()=>{mgFiles.splice(i,1);mgRender();});
+      mgList.appendChild(row);
+    });
+    mgGo.disabled=mgFiles.length<2||mgRunning;
+    mgNote.textContent=mgFiles.length?(mgFiles.length+' file dipilih'+(mgFiles.length<2?' (pilih minimal 2 file)':'')):'';
+  }
+  function mgAdd(list){
+    const add=[...list].filter(f=>/\.pdf$/i.test(f.name)||f.type==='application/pdf');
+    if(!add.length){showError('Pilih file berformat PDF.');return;}
+    clearError();
+    mgFiles=mgFiles.concat(add).sort(natCmp); mgRender();
+  }
+  mgIn.addEventListener('change',()=>{mgAdd(mgIn.files);mgIn.value='';});
+  ['dragover','dragenter'].forEach(ev=>mgDz.addEventListener(ev,e=>{e.preventDefault();mgDz.classList.add('drag');}));
+  ['dragleave','drop'].forEach(ev=>mgDz.addEventListener(ev,e=>{e.preventDefault();mgDz.classList.remove('drag');}));
+  mgDz.addEventListener('drop',e=>{if(e.dataTransfer&&e.dataTransfer.files.length)mgAdd(e.dataTransfer.files);});
+  mgGo.addEventListener('click',async()=>{
+    if(mgFiles.length<2||mgRunning)return;
+    mgRunning=true; mgGo.disabled=true; clearError();
+    try{
+      const {PDFDocument}=PDFLib, out=await PDFDocument.create(); let total=0;
+      for(let i=0;i<mgFiles.length;i++){
+        setStatus('Menyambungkan file '+(i+1)+' dari '+mgFiles.length+'...');
+        const buf=new Uint8Array(await mgFiles[i].arrayBuffer());
+        let d; try{d=await PDFDocument.load(buf,{ignoreEncryption:true});}catch(e){throw new Error('File "'+mgFiles[i].name+'" tidak bisa dibaca sebagai PDF.');}
+        const pgs=await out.copyPages(d,d.getPageIndices()); pgs.forEach(pg=>out.addPage(pg)); total+=pgs.length;
+        await sleep(0);
+      }
+      setStatus('Menyusun PDF...');
+      const bytes=await out.save();
+      const nm=baseName(mgFiles[0].name).replace(/[-_ ]*(bagian|part)[-_ ]*\d+([-_ ]*(dari|of)[-_ ]*\d+)?$/i,'')||'gabungan';
+      download(new Blob([bytes],{type:'application/pdf'}),nm+'-gabungan.pdf');
+      setStatus('Selesai! '+mgFiles.length+' file disambung jadi 1 PDF ('+total+' halaman, '+fmt(bytes.length)+').');
+    }catch(err){
+      console.error(err); showError(err.message||'Gagal menyambungkan PDF.'); setStatus('');
+    }finally{mgRunning=false; mgRender();}
+  });
+  mgRender();
 })();
 </script>
 
