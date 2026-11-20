@@ -624,9 +624,23 @@ document.documentElement.setAttribute('data-theme',t);}catch(e){document.documen
   .ed-list-box .row input{flex:1;min-width:120px}
   #edList{max-height:36vh;overflow:auto;display:flex;flex-direction:column;gap:6px;margin-top:10px}
   .ed-li{width:100%}
+  .ed-ocr-box.need{border-color:var(--gold);background:rgba(184,145,47,.10)}
+  .ed-ocr-box #edOcrMsg{font-size:12.5px;color:var(--ink-soft);margin:6px 0 0}
+  .ed-ocr-box select{padding:8px 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--paper-card);color:var(--ink);font:inherit;font-size:13px}
+  .ed-li.ed-lowconf{border-left:4px solid #E08A00}
   .ed-panel.off{opacity:.7;box-shadow:none;border-top-color:var(--line-strong)}
   .ed-panel.off .row,.ed-panel.off #edText{display:none}
   .ed-panel:not(.off) #edPanelHint{display:none}
+  /* Panel bisa dikecilkan + opsi lanjutan dilipat (supaya halaman tidak tertutup) */
+  .ed-panel{max-height:46vh;overflow:auto;-webkit-overflow-scrolling:touch}
+  .ed-panel-bar{display:flex;align-items:center;gap:8px;justify-content:space-between}
+  .ed-panel-bar .ttl{font-size:13px;font-weight:700;color:var(--head);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ed-panel-bar .btn{padding:6px 12px;font-size:13px}
+  .ed-adv{margin-top:10px;border-top:1px dashed var(--line-strong);padding-top:8px}
+  .ed-adv>summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--ink-soft);padding:4px 0;user-select:none}
+  .ed-panel.off .ed-adv{display:none}
+  .ed-panel.min{max-height:none;padding:8px 12px}
+  .ed-panel.min .row,.ed-panel.min .ed-adv,.ed-panel.min #edPanelHint{display:none}
   .ed-erase{position:absolute;border:2px dashed #C0392B;touch-action:none;cursor:move}
   .ed-erase .ed-h{position:absolute;right:-10px;bottom:-10px;width:20px;height:20px;border-radius:50%;background:#C0392B;border:2px solid #fff;cursor:nwse-resize;touch-action:none}
   .ed-erase .ed-x{position:absolute;right:-10px;top:-10px;width:22px;height:22px;border-radius:50%;background:var(--paper-card);border:1px solid #C0392B;color:#C0392B;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer}
@@ -1554,6 +1568,14 @@ document.documentElement.setAttribute('data-theme',t);}catch(e){document.documen
           <div class="filename" id="ed-pdf-filename"></div>
         </label>
       </div>
+      <div class="drop-row" style="grid-template-columns:1fr;margin-top:12px;">
+        <label class="dropzone" id="dz-ed-img">
+          <input type="file" id="input-ed-img" accept="image/*" multiple>
+          <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
+          <span class="label">Atau pilih foto / hasil scan (JPG, PNG)</span>
+          <span class="hint">bisa banyak foto sekaligus — tulisannya langsung dibaca otomatis</span>
+        </label>
+      </div>
     </div>
 
     <div class="card" id="edEditorCard" style="display:none;">
@@ -1576,6 +1598,10 @@ document.documentElement.setAttribute('data-theme',t);}catch(e){document.documen
       </div>
 
       <div class="ed-panel off" id="edPanel">
+        <div class="ed-panel-bar">
+          <span class="ttl" id="edPanelTtl">⚙ Pengaturan teks</span>
+          <button class="btn ghost" id="edMinBtn" type="button" title="Kecilkan / besarkan panel">▾ Kecilkan</button>
+        </div>
         <div class="lbl" id="edPanelHint">🔤 Ketuk salah satu kolom teks di bawah (atau teks di halaman) untuk mengatur font, ukuran, tebal &amp; miring.</div>
         <input type="text" id="edText" placeholder="Ketik teks di sini" autocomplete="off">
         <div class="row">
@@ -1589,6 +1615,9 @@ document.documentElement.setAttribute('data-theme',t);}catch(e){document.documen
           <button class="btn ghost" id="edUndoBtn" type="button">↺ Kembalikan</button>
           <button class="btn" id="edDoneBtn" type="button">✓ Selesai</button>
         </div>
+        <details class="ed-adv">
+        <summary>⚙ Opsi lanjutan (scan, gaya tulisan)</summary>
+        <div class="row"><button class="btn ghost" id="edReAutoBtn" type="button" title="Hitung ulang warna, tebal & blur supaya mirip tulisan scan di sekitarnya">↻ Cocokkan otomatis (warna, tebal, blur)</button></div>
         <div class="row">
           <label class="lbl" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="edMatch"> Samakan dengan sekitar (cocok untuk scan)</label>
           <label class="lbl" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="edCover" checked> Tutup tulisan lama</label>
@@ -1611,6 +1640,17 @@ document.documentElement.setAttribute('data-theme',t);}catch(e){document.documen
           <label class="lbl" style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="espCkBlur" checked> blur scan</label>
         </div>
         <div class="row"><span class="lbl" id="espInfo" style="font-weight:400"></span></div>
+        </details>
+      </div>
+
+      <div class="ed-list-box ed-ocr-box" id="edOcrBox">
+        <div class="lbl">📷 Baca tulisan dari foto / scan (OCR)</div>
+        <p id="edOcrMsg"></p>
+        <div class="row">
+          <select id="edOcrLang" aria-label="Bahasa dokumen"><option value="ind+eng">Indonesia + Inggris</option><option value="ind">Indonesia</option><option value="eng">Inggris</option></select>
+          <select id="edOcrScope" aria-label="Halaman yang dibaca"><option value="1">Halaman ini saja</option><option value="all">Semua halaman (yang tanpa teks)</option></select>
+          <button class="btn" id="edOcrBtn" type="button">🔍 Baca tulisan</button>
+        </div>
       </div>
 
       <div class="ed-list-box">
@@ -1674,6 +1714,32 @@ document.documentElement.setAttribute('data-theme',t);}catch(e){document.documen
           <button class="btn ghost" id="sgDrawUndo" type="button" disabled>↶ Urungkan</button>
           <button class="btn ghost" id="sgDrawClear" type="button">🗑 Hapus</button>
           <button class="btn gold" id="sgDrawDone" type="button">Gunakan tanda tangan ini →</button>
+        </div>
+
+        <!-- Variasi tanda tangan -->
+        <div class="sg-var-box" id="sgVarBox" style="margin-top:14px;padding:12px;border:1px dashed var(--line,#cbd5e1);border-radius:12px;">
+          <b style="font-size:13.5px;">🎲 Buat banyak variasi (mirip tanda tangan asli di kertas)</b>
+          <p class="sub" style="margin:4px 0 10px;">Sekali tanda tangan di atas, aplikasi membuat banyak versi yang mirip tapi tidak persis sama: sudut, ukuran, kemiringan, dan goyangan garis sedikit berbeda.</p>
+          <div class="toolbar">
+            <div class="group">
+              <label for="sgVarCount">Jumlah</label>
+              <select id="sgVarCount">
+                <option value="6">6</option>
+                <option value="12" selected>12</option>
+                <option value="20">20</option>
+                <option value="30">30</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+            <div class="group">
+              <label for="sgVarAmt">Tingkat beda: <b id="sgVarAmtVal">40</b>%</label>
+              <input type="range" id="sgVarAmt" min="10" max="100" value="40" style="width:130px">
+            </div>
+            <button class="btn ghost" id="sgVarMake" type="button">🎲 Buat variasi</button>
+            <button class="btn gold" id="sgVarZip" type="button" disabled>⬇ Unduh semua (ZIP)</button>
+          </div>
+          <div id="sgVarGrid" style="display:none;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:10px;"></div>
+          <p class="sub" id="sgVarHint" style="display:none;margin:8px 0 0;">Ketuk “Pakai” untuk melanjutkan dengan versi itu, atau “PNG” untuk mengunduhnya satu per satu.</p>
         </div>
       </div>
 
@@ -4448,11 +4514,12 @@ function edDraw(){
   edE.cv.style.width = W; edE.cv.style.height = H;
   L.innerHTML = ''; L.classList.toggle('ed-hide', !edE.hl.checked);
   const list = edS.edits[p] || [];
-  const used = new Set(list.map(e => e.itemId));
+  const used = new Set(list.filter(e => e.add || e.dirty).map(e => e.itemId));
+  const curE = edCur();
   const mk = (cls, st) => { const d = document.createElement('div'); d.className = cls; Object.assign(d.style, st); L.appendChild(d); return d; };
   (edS.items[p]||[]).forEach((it,i)=>{
     if(used.has(i)) return;
-    const d = mk('ed-item'+(edS.hot===i?' hot':''), { left:it.x*k+'px', top:(it.y-it.fs*.92)*k+'px', width:it.w*k+'px', height:it.fs*1.2*k+'px' });
+    const d = mk('ed-item'+(edS.hot===i||(curE&&curE.itemId===i)?' hot':''), { left:it.x*k+'px', top:(it.y-it.fs*.92)*k+'px', width:it.w*k+'px', height:it.fs*1.2*k+'px' });
     d.title = 'Ketuk untuk mengedit';
     d.addEventListener('click', ()=>{ if(!edS.add) edPick(i); });
   });
@@ -4464,7 +4531,15 @@ function edDraw(){
     const h = document.createElement('span'); h.className = 'ed-h';
     d.append(x, h); edErasePtr(d, h, x, r);
   });
-  list.forEach(e=>{
+  list.forEach(e0=>{
+    if(!(e0.add || e0.dirty)) return;   // sekadar diklik / dipilih: tampilan asli halaman tidak diubah
+    const ps = edPartsOf(e0, p);
+    if(ps){
+      ps.forEach(pe => { const R = edRegion(pe), c2 = edRaster(pe, R, 1.5); c2.className = 'ed-cover'; Object.assign(c2.style, { left:R.x*k+'px', top:R.y*k+'px', width:R.w*k+'px', height:R.h*k+'px' }); L.appendChild(c2); });
+      if(edS.sel === e0.id){ const it = edS.items[p][e0.itemId]; mk('ed-item hot', { left:it.box.x*k+'px', top:it.box.y*k+'px', width:it.box.w*k+'px', height:it.box.h*k+'px', pointerEvents:'none' }); }
+      return;
+    }
+    const e = e0;
     const bgc = e.match && e.bgS ? `rgb(${e.bgS})` : e.bg;
     if(e.cov) mk('ed-cover', { left:e.cov.x*k+'px', top:e.cov.y*k+'px', width:e.cov.w*k+'px', height:e.cov.h*k+'px', background:bgc });
     else if(e.match && e.cover !== false && e.bgS){ const R = edRegion(e); mk('ed-cover', { left:R.x*k+'px', top:R.y*k+'px', width:R.w*k+'px', height:R.h*k+'px', background:bgc }); }
@@ -4653,7 +4728,7 @@ const edMeasure = (() => { const c = document.createElement('canvas').getContext
 const edStroke = e => Math.max(0, (e.wk||0) + (e.wb||0)) * (e.fs/25) * .5;
 
 function edRegion(e){
-  const m = edMeasure(e, e.text || ' '), x = e.exp || 0;
+  const m = edMeasure(e, e.text || ' ') * (e.sx || 1), x = e.exp || 0;
   let R = { x:e.x-1-x, y:e.y-e.fs*.95-x, w:m+2+2*x, h:e.fs*1.3+2*x };
   if(e.cov){
     const x0 = Math.min(R.x,e.cov.x), y0 = Math.min(R.y,e.cov.y), x1 = Math.max(R.x+R.w,e.cov.x+e.cov.w), y1 = Math.max(R.y+R.h,e.cov.y+e.cov.h);
@@ -4669,22 +4744,30 @@ function edAuto(e){
   const w = Math.min(cv.width-x, Math.ceil(R.w)), h = Math.min(cv.height-y, Math.ceil(R.h));
   if(w < 4 || h < 4) return;
   let d; try{ d = cv.getContext('2d').getImageData(x,y,w,h).data; }catch(_){ return; }
-  const L = [];
-  for(let i=0;i<d.length;i+=4) L.push([d[i]*.3+d[i+1]*.59+d[i+2]*.11, i]);
-  L.sort((a,b) => b[0]-a[0]);
-  const nb = Math.max(1, L.length*.4|0), m = [0,0,0]; let sg = 0;
-  for(let j=0;j<nb;j++){ const i = L[j][1]; m[0]+=d[i]; m[1]+=d[i+1]; m[2]+=d[i+2]; }
-  for(let c=0;c<3;c++) m[c] = Math.round(m[c]/nb);
-  for(let j=0;j<nb;j++) sg += Math.abs(d[L[j][1]]-m[0]);
-  const ni = Math.max(1, L.length*.04|0), k = [0,0,0];
-  for(let j=0;j<ni;j++){ const i = L[L.length-1-j][1]; k[0]+=d[i]; k[1]+=d[i+1]; k[2]+=d[i+2]; }
+  // Tanpa asumsi polaritas: kertas = warna yang paling dominan, tinta = piksel yang paling jauh dari kertas
+  // (bisa gelap di latar terang, terang di latar gelap, atau berwarna)
+  const hist = {}; let hb = 0, hk = 0;
+  for(let i=0;i<d.length;i+=4){ const qk = ((d[i]>>4)<<8)|((d[i+1]>>4)<<4)|(d[i+2]>>4), c = (hist[qk] = (hist[qk]||0)+1); if(c > hb){ hb = c; hk = qk; } }
+  const g0 = [((hk>>8)&15)*16+8, ((hk>>4)&15)*16+8, (hk&15)*16+8];
+  let m = [0,0,0], nbg = 0;
+  for(let i=0;i<d.length;i+=4) if(Math.abs(d[i]-g0[0])+Math.abs(d[i+1]-g0[1])+Math.abs(d[i+2]-g0[2]) < 60){ m[0]+=d[i]; m[1]+=d[i+1]; m[2]+=d[i+2]; nbg++; }
+  m = nbg ? m.map(v => Math.round(v/nbg)) : g0;
+  const NP = d.length/4, Dd = new Float32Array(NP), ix = new Array(NP); let dmax = 0, sg = 0, ns = 0;
+  const lm = m[0]*.3+m[1]*.59+m[2]*.11;
+  for(let i=0,j=0;i<d.length;i+=4,j++){
+    const v = Math.abs(d[i]-m[0])+Math.abs(d[i+1]-m[1])+Math.abs(d[i+2]-m[2]); Dd[j] = v; ix[j] = j; if(v > dmax) dmax = v;
+    if(v < 45){ sg += Math.abs(d[i]*.3+d[i+1]*.59+d[i+2]*.11 - lm); ns++; }
+  }
+  ix.sort((u,v) => Dd[v]-Dd[u]);
+  const ni = Math.max(1, NP*.04|0), k = [0,0,0];
+  for(let j=0;j<ni;j++){ const i = ix[j]*4; k[0]+=d[i]; k[1]+=d[i+1]; k[2]+=d[i+2]; }
   for(let c=0;c<3;c++) k[c] = Math.round(k[c]/ni);
-  const lo = L[L.length-1][0], hi = L[0][0], thr = hi-(hi-lo)*.5;
-  const hasInk = hi-lo > 50;
-  e.bgS = m; e.sig = sg/nb;
-  if(!e.cc) e.color = hasInk ? '#'+k.map(v=>v.toString(16).padStart(2,'0')).join('') : '#222222';
+  const hasInk = dmax > 90;
+  e.bgS = m; e.sig = ns ? sg/ns : 0;
+  if(!e.cc) e.color = hasInk ? '#'+k.map(v=>v.toString(16).padStart(2,'0')).join('') : (lm > 128 ? '#222222' : '#f2f2f2');
   // kalibrasi ketebalan goresan: cocokkan kepadatan tinta teks baru dengan tulisan sekitar
-  const rho = L.filter(a => a[0] < thr).length / L.length;
+  let nin = 0; for(let j=0;j<NP;j++) if(Dd[j] > dmax*.5) nin++;
+  const rho = nin / NP;
   if(hasInk && rho > .02 && e.text && !e.sty){
     const tc = document.createElement('canvas'); tc.width = Math.max(4,Math.ceil(R.w)); tc.height = Math.max(4,Math.ceil(R.h));
     const q = tc.getContext('2d'), u = e.fs/25; let best = 0, bd = 9;
@@ -4697,6 +4780,55 @@ function edAuto(e){
     }
     e.wk = best;
   }
+  // kalibrasi blur: cocokkan ketajaman tepi tulisan baru dengan tulisan scan di sekitar
+  if(!e.blc && hasInk && e.text){
+    try{
+      const C = Math.max(30, Math.abs(k[0]-m[0])+Math.abs(k[1]-m[1])+Math.abs(k[2]-m[2]));
+      const ref = edEdgeSharp(d, w, h, C, m);
+      const tc = document.createElement('canvas'); tc.width = Math.max(4,Math.ceil(R.w)); tc.height = Math.max(4,Math.ceil(R.h));
+      const q = tc.getContext('2d', { willReadFrequently:true }), tt = document.createElement('canvas'); tt.width = tc.width; tt.height = tc.height;
+      const z = tt.getContext('2d'); z.font = edFont(e); z.lineJoin = 'round'; z.fillStyle = z.strokeStyle = `rgb(${k})`;
+      z.fillText(e.text, e.x-R.x, e.y-R.y); const sw = edStroke(e); if(sw > 0){ z.lineWidth = sw; z.strokeText(e.text, e.x-R.x, e.y-R.y); }
+      let bb = 0, bd = 1e9;
+      for(const b of [0,.3,.6,.9,1.2,1.6,2,2.5,3]){
+        q.fillStyle = `rgb(${m})`; q.fillRect(0,0,tc.width,tc.height);
+        q.filter = b ? `blur(${b}px)` : 'none'; q.drawImage(tt,0,0); q.filter = 'none';
+        const a = q.getImageData(0,0,tc.width,tc.height).data, dd = Math.abs(edEdgeSharp(a, tc.width, tc.height, C, m) - ref);
+        if(dd < bd){ bd = dd; bb = b; }
+      }
+      e.bl = bb;
+      if(!e.cc){
+        // blur melunturkan puncak tinta: gelapkan warna supaya puncak hasil akhir sama dengan tulisan scan
+        q.fillStyle = `rgb(${m})`; q.fillRect(0,0,tc.width,tc.height);
+        q.filter = bb ? `blur(${bb}px)` : 'none'; q.drawImage(tt,0,0); q.filter = 'none';
+        const a = q.getImageData(0,0,tc.width,tc.height).data, P = [];
+        for(let i=0;i<a.length;i+=4) P.push([Math.abs(a[i]-m[0])+Math.abs(a[i+1]-m[1])+Math.abs(a[i+2]-m[2]), i]);
+        P.sort((u,v) => v[0]-u[0]);
+        const n2 = Math.max(1, P.length*.04|0); let dc = 0;
+        for(let j=0;j<n2;j++) dc += P[j][0];
+        dc /= n2;
+        const dk = Math.abs(k[0]-m[0])+Math.abs(k[1]-m[1])+Math.abs(k[2]-m[2]), f = Math.max(1, Math.min(2.2, dk/Math.max(12, dc)));
+        if(f > 1.03) e.color = '#'+k.map((v,c) => Math.max(0, Math.min(255, Math.round(m[c]+(v-m[c])*f))).toString(16).padStart(2,'0')).join('');
+      }
+      if(edCur() === e) edG('edBl').value = bb;
+    }catch(_){}
+  }
+}
+
+// Ukuran ketajaman tepi (rata-rata gradien terbesar dibanding kontras) — makin kecil = makin buram
+function edEdgeSharp(d, w, h, C, m){
+  const g = new Float32Array(w*h);
+  for(let i=0,j=0;i<d.length;i+=4,j++) g[j] = Math.abs(d[i]-m[0])+Math.abs(d[i+1]-m[1])+Math.abs(d[i+2]-m[2]);
+  const mag = [];
+  for(let y=1;y<h-1;y++) for(let x=1;x<w-1;x++){
+    const gx = g[y*w+x+1]-g[y*w+x-1], gy = g[(y+1)*w+x]-g[(y-1)*w+x];
+    mag.push(Math.hypot(gx,gy)/2);
+  }
+  if(!mag.length) return 0;
+  mag.sort((a,b) => b-a);
+  const n = Math.max(1, mag.length*.02|0); let t = 0;
+  for(let i=0;i<n;i++) t += mag[i];
+  return t/n/C;
 }
 
 // Gambar tambalan: kertas + derau + teks bergoresan sama + sedikit blur seperti hasil scan
@@ -4706,8 +4838,10 @@ function edRaster(e, R, sc){
   if(e.cover !== false){ g.fillStyle = `rgb(${e.bgS})`; g.fillRect(0,0,c.width,c.height); }
   const t = document.createElement('canvas'); t.width = c.width; t.height = c.height;
   const q = t.getContext('2d'); q.scale(sc,sc);
-  q.font = edFont(e); q.fillStyle = q.strokeStyle = e.color; q.lineJoin = 'round'; q.lineWidth = edStroke(e);
-  q.fillText(e.text, e.x-R.x, e.y-R.y); if(q.lineWidth > 0) q.strokeText(e.text, e.x-R.x, e.y-R.y);
+  q.font = edFont(e); q.fillStyle = q.strokeStyle = e.color; q.lineJoin = 'round';
+  const sx = e.sx || 1; q.save(); q.scale(sx, 1);
+  q.fillText(e.text, (e.x-R.x)/sx, e.y-R.y); const sw = edStroke(e); if(sw > 0){ q.lineWidth = sw; q.strokeText(e.text, (e.x-R.x)/sx, e.y-R.y); }
+  q.restore();
   g.filter = `blur(${edBlur(e)*sc}px)`; g.drawImage(t,0,0); g.filter = 'none';
   if(e.cover !== false && e.sig > .4){
     const im = g.getImageData(0,0,c.width,c.height), a = im.data, amp = e.sig*1.6;
@@ -4717,12 +4851,142 @@ function edRaster(e, R, sc){
   return c;
 }
 
+// ---------- Edit per kata (hasil scan): hanya kata yang berubah yang ditutup & ditulis ulang, kata lain tetap asli ----------
+function edDiffSegs(a, b){
+  const n = a.length, m = b.length, dp = [];
+  for(let i=0;i<=n;i++) dp.push(new Array(m+1).fill(0));
+  for(let i=n-1;i>=0;i--) for(let j=m-1;j>=0;j--) dp[i][j] = a[i] === b[j] ? dp[i+1][j+1]+1 : Math.max(dp[i+1][j], dp[i][j+1]);
+  const mt = []; let i = 0, j = 0;
+  while(i<n && j<m){ if(a[i] === b[j]){ mt.push([i,j]); i++; j++; } else if(dp[i+1][j] >= dp[i][j+1]) i++; else j++; }
+  mt.push([n,m]);
+  const segs = []; let pi = 0, pj = 0;
+  for(const [mi,mj] of mt){
+    if(mi > pi || mj > pj) segs.push({ i0:pi, i1:mi, j0:pj, j1:mj });
+    pi = mi+1; pj = mj+1;
+  }
+  for(const g of segs){      // sisipan murni: ikutkan satu kata tetangga supaya ada tempat
+    if(g.i0 === g.i1 && g.j1 > g.j0){
+      if(g.i0 > 0){ g.i0--; g.j0--; } else if(g.i1 < n){ g.i1++; g.j1++; }
+    }
+  }
+  return segs;
+}
+// Tinggi huruf & garis dasar asli dari piksel sebuah kata (supaya kata pengganti seukuran kata yang diganti)
+const edAsc = (() => { const c = document.createElement('canvas').getContext('2d'); return (e, t) => { c.font = edFont(e); return c.measureText(t).actualBoundingBoxAscent; }; })();
+function edInkRows(r, bg){
+  try{
+    const cv = edE.cv, x = Math.max(0, r.x|0), y = Math.max(0, r.y|0), w = Math.min(cv.width-x, Math.ceil(r.w)), h = Math.min(cv.height-y, Math.ceil(r.h));
+    if(w < 2 || h < 4) return null;
+    const d = cv.getContext('2d').getImageData(x,y,w,h).data, D = new Float32Array(w*h); let mx = 0;
+    for(let i=0,j=0;i<d.length;i+=4,j++){ const v = Math.abs(d[i]-bg[0])+Math.abs(d[i+1]-bg[1])+Math.abs(d[i+2]-bg[2]); D[j] = v; if(v > mx) mx = v; }
+    if(mx < 90) return null;
+    const th = mx*.5; let top = -1, bot = -1;
+    for(let row=0;row<h;row++){
+      let c = 0; for(let col=0;col<w;col++) if(D[row*w+col] > th) c++;
+      if(c >= 2 && c < w*.9){ if(top < 0) top = row; bot = row; }   // abaikan baris penuh (garis/hiasan)
+    }
+    if(top < 0) return null;
+    let cnt = 0; for(let row=top;row<=bot;row++) for(let col=0;col<w;col++) if(D[row*w+col] > th) cnt++;
+    return { top:y+top, bottom:y+bot+1, dens:cnt/(w*(bot-top+1)) };
+  }catch(_){ return null; }
+}
+// Warna latar lokal di sekitar sebuah kotak (cincin 4px di luarnya) — supaya latar berwarna / gradasi menyatu
+function edBgAround(r){
+  try{
+    const cv = edE.cv, x = Math.max(0,(r.x-4)|0), y = Math.max(0,(r.y-4)|0), x2 = Math.min(cv.width,Math.ceil(r.x+r.w+4)), y2 = Math.min(cv.height,Math.ceil(r.y+r.h+4));
+    const w = x2-x, h = y2-y; if(w < 4 || h < 4) return null;
+    const d = cv.getContext('2d').getImageData(x,y,w,h).data, ring = [];
+    const ax = r.x-x, bx = r.x+r.w-x, ay = r.y-y, by = r.y+r.h-y;
+    for(let py=0;py<h;py++) for(let px=0;px<w;px++) if(px < ax || px >= bx || py < ay || py >= by){ const i = (py*w+px)*4; ring.push(i); }
+    if(!ring.length) return null;
+    const hist = {}; let hb = 0, hk = 0;
+    for(const i of ring){ const qk = ((d[i]>>4)<<8)|((d[i+1]>>4)<<4)|(d[i+2]>>4), c = (hist[qk] = (hist[qk]||0)+1); if(c > hb){ hb = c; hk = qk; } }
+    const g0 = [((hk>>8)&15)*16+8, ((hk>>4)&15)*16+8, (hk&15)*16+8], m = [0,0,0]; let n = 0;
+    for(const i of ring) if(Math.abs(d[i]-g0[0])+Math.abs(d[i+1]-g0[1])+Math.abs(d[i+2]-g0[2]) < 60){ m[0]+=d[i]; m[1]+=d[i+1]; m[2]+=d[i+2]; n++; }
+    return n ? m.map(v => Math.round(v/n)) : null;
+  }catch(_){ return null; }
+}
+// Samakan tinggi & garis dasar kata pengganti dengan kata lama (diukur dari piksel), bukan dari perkiraan satu baris
+function edFitHeight(pe, e, oldTxt, x0, x1, it){
+  const TALL = /[A-Z0-9bdfhklt]/, DESC = /[gjpqy,;()\[\]{}\/|@]/;
+  const rows = edInkRows({ x:x0-1, y:it.box.y, w:x1-x0+2, h:it.box.h }, pe.bgS);
+  if(!rows) return;
+  pe._rows = rows;
+  let base = e.y;
+  if(!DESC.test(oldTxt) && rows.bottom > rows.top + 3) base = rows.bottom;      // tanpa ekor huruf: dasar tinta = garis dasar
+  const asc = base - rows.top;
+  if(!(asc > 2)) return;
+  const tOld = TALL.test(oldTxt), tNew = TALL.test(pe.text);
+  const wfit = () => { const wo = x1 - x0, nt = edMeasure(pe, oldTxt); if(wo > 2 && nt > 2) pe.sx = Math.max(.6, Math.min(1.5, wo / nt)); };   // lebar huruf font asli dari kata lama
+  if(!pe.text || tOld !== tNew) { pe.y = base; wfit(); return; }
+  const nat = edAsc(Object.assign({}, pe, { fs:e.fs }), pe.text);
+  if(!(nat > 1)) { pe.y = base; wfit(); return; }
+  const sc = Math.max(.6, Math.min(1.5, asc / nat));
+  pe.fs = e.fs * sc; pe.y = base; wfit();
+}
+// Samakan ketebalan goresan kata pengganti dengan kepadatan tinta kata lama
+function edFitWeight(pe){
+  const r = pe._rows; if(!r || !(r.dens > .03) || !pe.text) return;
+  const sx = pe.sx || 1, W = Math.max(4, Math.ceil(edMeasure(pe, pe.text) * sx)), H = Math.max(3, Math.round(r.bottom - r.top)), by = pe.y - r.top;
+  const tc = document.createElement('canvas'); tc.width = W + 8; tc.height = H + 2;
+  const q = tc.getContext('2d', { willReadFrequently:true }), u = pe.fs/25; let best = 0, bd = 9;
+  for(let kk=0;kk<=10;kk++){
+    q.clearRect(0,0,tc.width,tc.height); q.save(); q.scale(sx,1); q.font = edFont(pe); q.fillStyle = q.strokeStyle = '#000'; q.lineJoin = 'round';
+    q.fillText(pe.text, 2/sx, by); if(kk){ q.lineWidth = kk*u*.5; q.strokeText(pe.text, 2/sx, by); } q.restore();
+    const a = q.getImageData(0,0,tc.width,H).data; let c = 0;
+    for(let i=3;i<a.length;i+=4) if(a[i] > 127) c++;
+    const dd = Math.abs(c/((W+8)*H) * ((W+8)/W) - r.dens); if(dd < bd){ bd = dd; best = kk; }
+  }
+  pe.wk = best;
+}
+function edPartsOf(e, p){
+  if(e.add || !e.dirty || e.itemId == null || !e.bgS || e.part === false) return null;
+  const it = (edS.items[p]||[])[e.itemId];
+  if(!it || !it.scan || !it.words || !it.words.length || !it.box) return null;
+  if(e.x !== it.x || e.y !== it.y || e.fs !== it.fs || e.ff !== it.ff || !!e.bold !== !!it.bold || !!e.ital !== !!it.ital) return null;
+  const W = it.words, a = W.map(w => w.t), b = (e.text||'').trim().split(/\s+/).filter(Boolean);
+  const nat = edMeasure(e, it.str), cx = Math.max(.7, Math.min(1.3, it.w / Math.max(1, nat)));   // lebar font asli scan vs font kita
+  const gap = Math.max(2*edS.s, it.fs*.12), out = [];
+  const segs = edDiffSegs(a, b);
+  for(let si=0; si<segs.length; si++){
+    const g = segs[si];
+    const x0 = W[g.i0].x0, x1 = W[g.i1-1].x1, nx = g.i1 < W.length ? W[g.i1].x0 : null, px = g.i0 > 0 ? W[g.i0-1].x1 : null;
+    const txt = b.slice(g.j0, g.j1).join(' ');
+    const pe = Object.assign({}, e, { text:txt, x:x0, sx:cx, exp:Math.min(e.exp||0, edS.s) });
+    pe.cov = { x: px == null ? x0-2 : Math.max(x0-2, (px+x0)/2), y:it.box.y-2, w:0, h:it.box.h+4 };
+    const cr = nx == null ? x1+2 : Math.min(x1+2, (x1+nx)/2);
+    pe.cov.w = Math.max(2, cr - pe.cov.x);
+    const lb = edBgAround(pe.cov); if(lb) pe.bgS = lb;
+    edFitHeight(pe, e, a.slice(g.i0, g.i1).join(' '), x0, x1, it);
+    if(e.auto !== false) edFitWeight(pe);
+    const wn = edMeasure(pe, txt) * pe.sx, wmax = nx == null ? Math.max(x1-x0, it.fs*.6) + it.fs*3 : nx - x0 - gap;
+    if(wn > wmax && wmax > 4){
+      if(pe.sx * wmax / wn < .82 && nx != null){
+        // terlalu sempit: tulis ulang sisa baris ke kanan dengan jarak wajar (daripada huruf digepengkan)
+        g.i1 = W.length; g.j1 = b.length;
+        pe.text = b.slice(g.j0).join(' ');
+        const xe = W[W.length-1].x1;
+        pe.cov = { x:pe.cov.x, y:pe.cov.y, w:Math.max(2, xe + 2 - pe.cov.x), h:pe.cov.h };
+        const lb2 = edBgAround(pe.cov); if(lb2) pe.bgS = lb2;
+        const w2 = edMeasure(pe, pe.text) * pe.sx, mx = Math.max(xe - x0, it.fs*.6) + it.fs*3;
+        if(w2 > mx) pe.sx = Math.max(.6, pe.sx * mx / w2);
+        out.push(pe);
+        break;
+      }
+      pe.sx = Math.max(.5, pe.sx * wmax / wn);
+    }
+    out.push(pe);
+  }
+  return out;
+}
+
 const edTouch = fn => { const e = edCur(); if(!e) return; fn(e); e.dirty = true; if(e.match) edAuto(e); edDraw(); };
 edG('edMatch').addEventListener('change', ()=> edTouch(e => { e.match = edG('edMatch').checked; }));
 edG('edCover').addEventListener('change', ()=> edTouch(e => { e.cover = edG('edCover').checked; }));
+edG('edReAutoBtn').addEventListener('click', ()=> { edTouch(e => { e.match = true; e.sty = false; e.cc = false; e.blc = false; e.auto = true; }); const e = edCur(); if(e){ edG('edMatch').checked = true; edG('edWb').value = e.wb||0; edG('edBl').value = edBlur(e); edG('edColor').value = e.color; } });
 edG('edWb').addEventListener('input', ()=> edTouch(e => { e.wb = +edG('edWb').value; }));
 edG('edExp').addEventListener('input', ()=> edTouch(e => { e.exp = +edG('edExp').value * edS.s; }));
-edG('edBl').addEventListener('input', ()=> edTouch(e => { e.bl = +edG('edBl').value; }));
+edG('edBl').addEventListener('input', ()=> edTouch(e => { e.bl = +edG('edBl').value; e.blc = true; }));
 edE.txt.addEventListener('input', ()=> edTouch(e => e.text = edE.txt.value));
 edE.txt.addEventListener('keydown', ev=>{ if(ev.key === 'Enter' || ev.key === 'Escape') edSelect(null); });
 edE.size.addEventListener('input', ()=> edTouch(e => e.fs = Math.max(1, +edE.size.value || 1) * edS.s));
@@ -4731,6 +4995,12 @@ edE.bold.addEventListener('click', ()=> edTouch(e => { e.bold = !e.bold; edE.bol
 edG('edFont').addEventListener('change', ()=> edTouch(e => e.ff = edG('edFont').value));
 edG('edItal').addEventListener('click', ()=> edTouch(e => { e.ital = !e.ital; edG('edItal').classList.toggle('on', e.ital); }));
 edG('edDoneBtn').addEventListener('click', ()=> edSelect(null));
+edG('edMinBtn').addEventListener('click', function(){
+  var mn = edE.panel.classList.toggle('min');
+  this.textContent = mn ? '▴ Besarkan' : '▾ Kecilkan';
+  try{ localStorage.setItem('edPanelMin', mn?'1':'0'); }catch(e){}
+});
+try{ if(localStorage.getItem('edPanelMin')==='1'){ edE.panel.classList.add('min'); edG('edMinBtn').textContent='▴ Besarkan'; } }catch(e){}
 edG('edDelBtn').addEventListener('click', ()=>{
   const e = edCur(); if(!e) return;
   if(e.add){ edS.edits[edS.page] = edS.edits[edS.page].filter(x => x !== e); }
@@ -4767,9 +5037,10 @@ edE.dl.addEventListener('click', async ()=>{
         const png = await doc.embedPng(edEraseCanvas(r, 1.5).toDataURL('image/png'));
         page.drawImage(png, { x:cb.x+r.x/sc, y:cb.y+cb.height-(r.y+r.h)/sc, width:r.w/sc, height:r.h/sc });
       }
-      for(const e of (edS.edits[p]||[])){
-        if(!(e.add || e.dirty)) continue;
+      for(const e0 of (edS.edits[p]||[])){
+        if(!(e0.add || e0.dirty)) continue;
         n++;
+        for(const e of (edPartsOf(e0, p) || [e0])){
         if(e.match && e.bgS){
           if(!e.text && !e.cov) continue;
           const R = edRegion(e), png = await doc.embedPng(edRaster(e, R, 1.5).toDataURL('image/png'));
@@ -4783,6 +5054,7 @@ edE.dl.addEventListener('click', async ()=>{
         let txt = '';
         for(const ch of e.text){ if(sets[name].has(ch.codePointAt(0))) txt += ch; else { txt += '?'; bad++; } }
         page.drawText(txt, { x:cb.x+e.x/sc, y:cb.y+cb.height-e.y/sc, size:e.fs/sc, font:fonts[name], color:hex(e.color) });
+        }
       }
     }
     const out = await doc.save();
@@ -5089,8 +5361,8 @@ function espApplyTo(e, st){
     e.sty = true;                                    // jangan ditimpa kalibrasi otomatis edAuto
   }
   if(espE.ckColor.checked){ e.color = st.color; e.cc = true; }
-  if(espE.ckBlur.checked) e.bl = st.bl;
-  e.match = true; e.dirty = true;
+  if(espE.ckBlur.checked){ e.bl = st.bl; e.blc = true; }
+  e.match = true; e.dirty = true; e.auto = false;   // gaya dipilih manual dari contoh: jangan ditimpa penyesuaian otomatis
   edAuto(e);
   edSelect(e.id, true);
   espE.info.textContent = `Gaya disalin: ukuran ${(e.fs / edS.s).toFixed(1)} pt · ${ESP_NAME[e.ff]}${e.bold ? ' tebal' : ''} · goresan +${(e.wk || 0).toFixed(1)} · blur ${(e.bl ?? 0).toFixed(1)} · warna ${e.color}. Atur halus dengan slider kalau perlu.` + (st.ambiguous ? ' Catatan: contoh ini tanpa huruf besar/menjulang, jadi ukuran bisa meleset. Kotakkan baris yang ada huruf besarnya bila hasilnya terlalu besar.' : '');
@@ -5426,6 +5698,166 @@ document.getElementById('sgDrawDone').addEventListener('click', ()=>{
   sgRebuild();
   setTimeout(()=> document.getElementById('sgCleanCard').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
 });
+
+
+// ---------- Variasi tanda tangan (acak terkontrol dari data goresan) ----------
+(function sgVarInit(){
+  const g = id => document.getElementById(id);
+  const grid = g('sgVarGrid'), hint = g('sgVarHint'), zipBtn = g('sgVarZip'), makeBtn = g('sgVarMake');
+  const amtEl = g('sgVarAmt');
+  let variants = []; // [{canvas, name}]
+
+  amtEl.addEventListener('input', ()=>{ g('sgVarAmtVal').textContent = amtEl.value; });
+
+  // Pembangkit acak bersemi (mulberry32) + gauss
+  function rng(seed){
+    let a = seed >>> 0;
+    const r = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+    r.g = () => (r() + r() + r() - 1.5) / 0.75; // ~ N(0,1) terbatas sekitar ±2
+    return r;
+  }
+
+  // Ubah goresan jadi versi "tulisan tangan lain"
+  function vary(strokes, amt, R){
+    // pusat bounding box
+    let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+    strokes.forEach(s=>s.pts.forEach(p=>{ x0=Math.min(x0,p.x); x1=Math.max(x1,p.x); y0=Math.min(y0,p.y); y1=Math.max(y1,p.y); }));
+    const cx=(x0+x1)/2, cy=(y0+y1)/2, bw=Math.max(0.05,x1-x0), bh=Math.max(0.05,y1-y0);
+    const size = Math.max(bw, bh);
+    // transformasi global
+    const rot = R.g()*0.035*amt;            // rad (~2° pada amt=1)
+    const sx = 1 + R.g()*0.045*amt, sy = 1 + R.g()*0.045*amt;
+    const skew = R.g()*0.05*amt;
+    const cr = Math.cos(rot), sr = Math.sin(rot);
+    const wGlobal = 1 + R.g()*0.08*amt;
+    const out = strokes.map(s=>{
+      // pergeseran kecil per goresan (tangan tidak jatuh di tempat persis sama)
+      const ox = R.g()*0.010*amt*size, oy = R.g()*0.010*amt*size;
+      // goyangan halus sepanjang goresan: dua gelombang sinus acak
+      const A1 = R.g()*0.012*amt*size, A2 = R.g()*0.006*amt*size;
+      const k1 = 2 + R()*3, k2 = 5 + R()*5, p1 = R()*6.28, p2 = R()*6.28;
+      const q1 = 2 + R()*3, q2 = 5 + R()*5, r1 = R()*6.28, r2 = R()*6.28;
+      const B1 = R.g()*0.012*amt*size, B2 = R.g()*0.006*amt*size;
+      const wS = (1 + R.g()*0.10*amt) * wGlobal;
+      const n = s.pts.length;
+      // sedikit pangkas/lebihkan ujung goresan
+      const trimA = Math.round(Math.max(0, R.g()*0.5*amt) * Math.min(2, n/8));
+      const trimB = Math.round(Math.max(0, R.g()*0.5*amt) * Math.min(2, n/8));
+      const pts = [];
+      for(let i=trimA; i<n-trimB; i++){
+        const p = s.pts[i], u = n>1 ? i/(n-1) : 0;
+        let x = p.x + ox + A1*Math.sin(u*k1*3.14+p1) + A2*Math.sin(u*k2*3.14+p2);
+        let y = p.y + oy + B1*Math.sin(u*q1*3.14+r1) + B2*Math.sin(u*q2*3.14+r2);
+        // skala + miring + putar terhadap pusat
+        let dx = (x-cx)*sx + (y-cy)*skew, dy = (y-cy)*sy;
+        x = cx + dx*cr - dy*sr; y = cy + dx*sr + dy*cr;
+        // tekanan/kecepatan ikut sedikit berubah
+        const fv = (p.f||1) * (1 + 0.12*amt*Math.sin(u*7+p1));
+        pts.push({ x, y, t:p.t, f:Math.max(0.2, fv) });
+      }
+      if(pts.length === 0) pts.push({ x:s.pts[0].x+ox, y:s.pts[0].y+oy, f:1 });
+      return { pts, color:s.color, w:s.w*wS, done:true };
+    });
+    return out;
+  }
+
+  // Render goresan -> kanvas transparan (dipotong rapat), cara sama dengan tombol "Gunakan"
+  function render(strokes){
+    let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+    for(const s of strokes){ const r=s.w*0.8; for(const p of s.pts){
+      if(p.x-r<x0)x0=p.x-r; if(p.x+r>x1)x1=p.x+r; if(p.y-r<y0)y0=p.y-r; if(p.y+r>y1)y1=p.y+r; } }
+    const pad=0.04; x0-=pad;y0-=pad;x1+=pad;y1+=pad;
+    const bw=x1-x0, bh=y1-y0, longest=Math.max(bw,bh), H=sgDrawState.H;
+    const scale=Math.max(H*1.5, Math.min(H*6, 1800/longest));
+    const c=document.createElement('canvas');
+    c.width=Math.max(1,Math.round(bw*scale)); c.height=Math.max(1,Math.round(bh*scale));
+    sgDrawPaint(c.getContext('2d',{willReadFrequently:true}), strokes, scale, x0*scale, y0*scale);
+    return c;
+  }
+
+  function useCanvas(out){
+    clearError();
+    sgS.base = out; sgS.rot = 0; sgS.cropStack = []; sgS.strokes = []; sgS.prevZoom = 1;
+    sgE.removeBg.checked = false; sgS.isQr = false;
+    sgE.cleanCard.style.display = '';
+    if(!sgS.pdfDoc) sgE.pdfCard.style.display = '';
+    sgRebuild();
+    setTimeout(()=> sgE.cleanCard.scrollIntoView({ behavior:'smooth', block:'start' }), 100);
+  }
+
+  const pad2 = n => String(n).padStart(2,'0');
+  const toBlob = c => new Promise(res => c.toBlob(res,'image/png'));
+  function saveBlob(blob, name){
+    const url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+  }
+
+  function showGrid(){
+    grid.innerHTML = '';
+    grid.style.display = 'grid'; hint.style.display = '';
+    variants.forEach((v, i)=>{
+      const cell = document.createElement('div');
+      cell.style.cssText = 'border:1px solid rgba(128,128,128,.35);border-radius:10px;padding:6px;text-align:center;';
+      const box = document.createElement('div');
+      box.style.cssText = 'height:70px;display:flex;align-items:center;justify-content:center;border-radius:6px;background:#fff;overflow:hidden;';
+      const im = document.createElement('img');
+      im.src = v.url; im.alt = v.name;
+      im.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;';
+      box.appendChild(im);
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:4px;margin-top:6px;';
+      const mk = (txt, fn)=>{ const b=document.createElement('button'); b.type='button'; b.className='btn ghost';
+        b.style.cssText='flex:1;padding:4px 6px;font-size:12px;'; b.textContent=txt; b.addEventListener('click', fn); return b; };
+      row.appendChild(mk('Pakai', ()=> useCanvas(v.canvas)));
+      row.appendChild(mk('PNG', async ()=> saveBlob(await toBlob(v.canvas), v.name)));
+      cell.appendChild(box); cell.appendChild(row); grid.appendChild(cell);
+    });
+  }
+
+  makeBtn.addEventListener('click', async ()=>{
+    clearError();
+    const base = sgDrawState.strokes;
+    if(!base.length){ showError('Belum ada tanda tangan. Tulis dulu di kotak di atas.'); return; }
+    makeBtn.disabled = true; zipBtn.disabled = true;
+    variants.forEach(v => URL.revokeObjectURL(v.url));
+    variants = [];
+    const n = parseInt(g('sgVarCount').value, 10) || 12;
+    const amt = (parseInt(amtEl.value, 10) || 40) / 40; // 40% = 1.0
+    const seed0 = (Date.now() & 0xffffff);
+    const src = base.map(s => ({ pts:s.pts.map(p=>({...p})), color:s.color, w:s.w, done:true }));
+    for(let i=0; i<n; i++){
+      const R = rng(seed0 + i*7919 + 13);
+      const c = render(vary(src, amt, R));
+      const blob = await toBlob(c);
+      variants.push({ canvas:c, blob, url:URL.createObjectURL(blob), name:'tanda-tangan-' + pad2(i+1) + '.png' });
+      if(i % 4 === 3) await new Promise(r => setTimeout(r, 0)); // beri napas ke UI
+    }
+    showGrid();
+    makeBtn.disabled = false; zipBtn.disabled = false;
+    makeBtn.textContent = '🎲 Acak ulang';
+  });
+
+  zipBtn.addEventListener('click', async ()=>{
+    if(!variants.length) return;
+    try{
+      if(typeof JSZip === 'undefined') throw new Error('Pustaka ZIP belum termuat. Periksa koneksi internet lalu coba lagi.');
+      zipBtn.disabled = true;
+      const z = new JSZip();
+      variants.forEach(v => z.file(v.name, v.blob));
+      saveBlob(await z.generateAsync({ type:'blob' }), 'variasi-tanda-tangan.zip');
+    }catch(err){ showError(err.message || 'Gagal membuat ZIP.'); }
+    zipBtn.disabled = false;
+  });
+
+  // Kalau tanda tangan dihapus, bersihkan hasil variasi lama
+  g('sgDrawClear').addEventListener('click', ()=>{
+    variants.forEach(v => URL.revokeObjectURL(v.url)); variants = [];
+    grid.innerHTML = ''; grid.style.display = 'none'; hint.style.display = 'none';
+    zipBtn.disabled = true; makeBtn.textContent = '🎲 Buat variasi';
+  });
+})();
 
 (function(){ setTimeout(sgDrawInit, 100); })();
 
@@ -11716,6 +12148,189 @@ tabs.forEach(t=>{
   });
   E.wmDl.addEventListener('click',()=>{ if(S.result) download(S.result,baseName(S.name)+'-tanpa-watermark.pdf'); });
   [E.wmText,E.wmAnnot,E.wmStamp,E.wmRange,E.wmFill,E.wmFlat].forEach(e=>e.addEventListener('input',()=>{ S.result=null; E.wmDl.style.display='none'; }));
+})();
+</script>
+
+<script>
+// ================== EDIT TEKS: BACA TULISAN DARI FOTO / SCAN (OCR) ==================
+// Tambahan berdiri sendiri. Hasil OCR dimasukkan ke edS.items (daftar teks yang sudah ada),
+// jadi semua alat edit lama (ketik di daftar, ukuran, warna, samakan dengan scan, unduh) langsung dipakai.
+(function(){
+  const g = id => document.getElementById(id);
+  const bar = { box:g('edOcrBox'), msg:g('edOcrMsg'), lang:g('edOcrLang'), scope:g('edOcrScope'), btn:g('edOcrBtn') };
+  const imgIn = g('input-ed-img'), imgDz = g('dz-ed-img');
+  if(!bar.btn || !imgIn || typeof edS === 'undefined') return;
+  let busy = false;
+
+  // ---------- 1. Foto / gambar -> PDF -> masuk ke editor lewat edLoad ----------
+  async function imgToCanvas(file){
+    let bmp;
+    try{ bmp = await createImageBitmap(file, { imageOrientation:'from-image' }); }
+    catch(_){ bmp = await createImageBitmap(file); }
+    const m = Math.min(1, 3000 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas');
+    c.width = Math.round(bmp.width * m); c.height = Math.round(bmp.height * m);
+    const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+    x.drawImage(bmp, 0, 0, c.width, c.height);
+    if(bmp.close) bmp.close();
+    return c;
+  }
+  async function imgsToEditor(files){
+    clearError();
+    files = files.filter(f => /^image\//.test(f.type) || /\.(jpe?g|png|webp|bmp)$/i.test(f.name || ''));
+    if(!files.length){ showError('Pilih berkas gambar (JPG, PNG, atau WEBP).'); return false; }
+    try{
+      setStatus('Menyiapkan gambar...');
+      const doc = await PDFLib.PDFDocument.create();
+      for(const f of files){
+        const c = await imgToCanvas(f);
+        const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', .92));
+        const img = await doc.embedJpg(new Uint8Array(await blob.arrayBuffer()));
+        const W = 595.28, H = W * c.height / c.width;
+        doc.addPage([W, H]).drawImage(img, { x:0, y:0, width:W, height:H });
+      }
+      const out = await doc.save();
+      await edLoad(new File([out], (files[0].name || 'foto').replace(/\.[^.]+$/, '') + '.pdf', { type:'application/pdf' }));
+      return !!edS.doc;
+    }catch(err){
+      console.error(err);
+      showError('Gagal membaca gambar. Coba format JPG atau PNG.');
+      setStatus('');
+      return false;
+    }
+  }
+  async function fromImages(files){
+    if(busy) return;
+    if(await imgsToEditor(files)){ bar.scope.value = 'all'; runOcr('all'); }
+  }
+  imgIn.addEventListener('change', e => { const f = [...e.target.files]; e.target.value = ''; if(f.length) fromImages(f); });
+  ['dragenter','dragover'].forEach(ev => imgDz.addEventListener(ev, e => { e.preventDefault(); imgDz.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(ev => imgDz.addEventListener(ev, e => { e.preventDefault(); imgDz.classList.remove('drag'); }));
+  imgDz.addEventListener('drop', e => { const f = [...e.dataTransfer.files]; if(f.length) fromImages(f); });
+
+  // ---------- 2. OCR ----------
+  const ensureTess = async () => {
+    if(window.Tesseract) return;
+    await new Promise((ok, no) => {
+      const sc = document.createElement('script');
+      sc.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+      sc.onload = ok; sc.onerror = () => no(new Error('Mesin OCR gagal dimuat. Pastikan internet aktif lalu coba lagi.'));
+      document.head.appendChild(sc);
+    });
+  };
+  const DESC = /[gjpqy,;()\[\]{}\/|@]/, ASC = /[A-Z0-9bdfhklt!?]/;
+  const med = a => { if(!a.length) return null; a = a.slice().sort((x, y) => x - y); return a[a.length >> 1]; };
+
+  // satu baris hasil OCR -> item daftar teks (koordinat sama dengan edExtract)
+  function lineToItem(ln, f){
+    const text = (ln.text || '').replace(/\s+/g, ' ').trim();
+    if(!text || !ln.bbox) return null;
+    const b = ln.bbox, bh = b.y1 - b.y0, ws = (ln.words || []).filter(w => w.text && w.text.trim() && w.bbox);
+    let base = med(ws.filter(w => !DESC.test(w.text)).map(w => w.bbox.y1)); if(base == null) base = b.y1 - bh * .22;
+    let top = med(ws.filter(w => ASC.test(w.text)).map(w => w.bbox.y0)); if(top == null) top = b.y0;
+    let fs = (base - top) / .72;
+    if(!(fs > 0)) fs = bh * .85;
+    fs = Math.max(bh * .55, Math.min(bh * 1.1, fs));
+    let conf = ln.confidence; if(conf == null) conf = med(ws.map(w => w.confidence || 0)); if(conf == null) conf = 0;
+    let wds = ws.map(w => ({ t:w.text.trim(), x0:w.bbox.x0 * f, x1:w.bbox.x1 * f }));
+    if(wds.map(w => w.t).join(' ') !== text) wds = null;   // kalau tidak cocok, edit per-kata dimatikan (pakai satu baris penuh)
+    return { str:text, x:b.x0 * f, y:base * f, w:(b.x1 - b.x0) * f, fs:fs * f, bold:false, ital:false, ff:'h', scan:true, conf, words:wds,
+             box:{ x:b.x0 * f, y:b.y0 * f, w:(b.x1 - b.x0) * f, h:bh * f } };
+  }
+
+  async function ocrPage(worker, p){
+    const page = await edS.doc.getPage(p), base = page.getViewport({ scale:1 });
+    const s = Math.min(2, 2400 / Math.max(base.width, base.height));           // sama dengan edRender
+    const S2 = Math.min(4, Math.max(s, 3000 / Math.max(base.width, base.height))); // lebih tajam supaya OCR akurat
+    const vp = page.getViewport({ scale:S2 });
+    const c = document.createElement('canvas'); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+    const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+    await page.render({ canvasContext:x, viewport:vp }).promise;
+    const { data } = await worker.recognize(c);
+    let lines = data.lines;
+    if(!lines && data.blocks) lines = data.blocks.flatMap(b => (b.paragraphs || []).flatMap(q => q.lines || []));
+    const f = s / S2;
+    return (lines || []).map(l => lineToItem(l, f)).filter(it => it && it.fs >= 3)
+      .sort((a, b) => (Math.abs(a.y - b.y) < Math.min(a.fs, b.fs) * .5) ? a.x - b.x : a.y - b.y);
+  }
+  async function hasTextLayer(p){
+    const t = await (await edS.doc.getPage(p)).getTextContent();
+    return t.items.some(i => i.str && i.str.trim());
+  }
+
+  async function runOcr(scope){
+    if(busy) return;
+    if(!edS.doc){ showError('Buka PDF atau foto dulu.'); return; }
+    clearError();
+    const cur = edS.page;
+    let pages = [];
+    if(scope === 'all'){
+      for(let p = 1; p <= edS.n; p++){
+        const its = edS.items[p];
+        if(its ? its.length === 0 : !(await hasTextLayer(p))) pages.push(p);
+      }
+      if(!pages.length){ setStatus('Semua halaman sudah punya teks yang bisa dipilih — OCR tidak diperlukan.'); return; }
+    }else{
+      pages = [cur];
+      if((edS.items[cur] || []).length && !confirm('Daftar teks halaman ini akan diganti hasil OCR dan perubahan yang sudah dibuat di halaman ini akan hilang. Lanjutkan?')) return;
+    }
+    busy = true; bar.btn.disabled = true;
+    let worker, total = 0, curP = pages[0];
+    try{
+      setStatus('Menyiapkan mesin OCR...');
+      await ensureTess();
+      worker = await Tesseract.createWorker(bar.lang.value, 1, { logger: m => {
+        if(m.status === 'recognizing text') setStatus('Membaca tulisan halaman ' + curP + ' (' + Math.round(m.progress * 100) + '%)...');
+        else setStatus('Menyiapkan mesin OCR (pertama kali perlu mengunduh data bahasa)...');
+      } });
+      for(const p of pages){
+        curP = p;
+        const items = await ocrPage(worker, p);
+        edS.items[p] = items; edS.edits[p] = []; total += items.length;
+      }
+      if(pages.includes(edS.page)){ edS.sel = null; edS.hot = null; edE.panel.classList.add('off'); edBuildList(); edDraw(); }
+      if(total) setStatus('Selesai! ' + total + ' baris tulisan terbaca. Ketik langsung di daftar untuk memperbaiki. Baris bertanda oranye kurang yakin terbaca.');
+      else { setStatus(''); showError('Tidak ada tulisan yang terbaca. Pastikan foto cukup jelas dan bahasa sudah sesuai.'); }
+    }catch(err){
+      console.error(err);
+      showError(err && err.message && /OCR|internet/i.test(err.message) ? err.message : 'Gagal membaca tulisan. Pastikan internet aktif (untuk mengunduh mesin OCR) lalu coba lagi.');
+      setStatus('');
+    }finally{
+      if(worker) try{ await worker.terminate(); }catch(_){}
+      busy = false; bar.btn.disabled = false;
+    }
+  }
+  bar.btn.addEventListener('click', () => runOcr(bar.scope.value));
+
+  // ---------- 3. Baris hasil OCR: otomatis mode "samakan dengan scan" & tutup tulisan lama ----------
+  const _edMake = edMake;
+  edMake = function(i){
+    const p = edS.page, had = (edS.edits[p] || []).some(x => x.itemId === i);
+    const e = _edMake(i), it = (edS.items[p] || [])[i];
+    if(!had && it && it.scan){
+      e.match = true;
+      if(it.box) e.cov = { x:it.box.x - 2, y:it.box.y - 2, w:it.box.w + 4, h:it.box.h + 4 };
+      edAuto(e);
+      e.auto = true; e.sty = e.blc = e.cc = true;   // kunci gaya dari baris aslinya: tidak dihitung ulang tiap ketikan / klik
+    }
+    return e;
+  };
+
+  // ---------- 4. Pesan bantuan + tanda oranye untuk baris yang kurang yakin ----------
+  function refresh(){
+    const its = edS.items[edS.page] || [];
+    document.querySelectorAll('#edList .ed-li').forEach(inp => {
+      const it = its[+inp.dataset.i];
+      if(it && it.scan && it.conf < 75){ inp.classList.add('ed-lowconf'); inp.title = 'Kurang yakin terbaca benar — mohon dicek'; }
+    });
+    bar.msg.textContent = !its.length
+      ? 'Halaman ini tidak punya teks yang bisa dipilih (foto / hasil scan). Tekan “Baca tulisan” supaya tulisannya terbaca dan bisa diketik ulang di daftar.'
+      : its.some(i => i.scan)
+        ? 'Tulisan sudah dibaca dari gambar. Baris bertanda oranye kurang yakin — periksa dulu. Boleh baca ulang kalau hasilnya kurang bagus.'
+        : 'Halaman ini sudah punya teks asli, jadi OCR tidak perlu. Pakai hanya untuk halaman foto / scan.';
+    bar.box.classList.toggle('need', !its.length);
+  }
+  new MutationObserver(refresh).observe(g('edList'), { childList:true });
 })();
 </script>
 
