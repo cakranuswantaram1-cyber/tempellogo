@@ -9992,6 +9992,13 @@ tabs.forEach(t=>{
   .sf-check{display:flex;gap:8px;align-items:center;font-size:13px;min-height:40px;}
   .sf-bar{height:8px;border-radius:6px;background:var(--line);overflow:hidden;margin-top:12px;display:none;}
   .sf-bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s;}
+  /* ===== Scan banyak file sekaligus ===== */
+  .sb-row{display:flex;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);font-size:13px;}
+  .sb-row .sb-nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .sb-row .sb-st{font-size:12px;color:var(--ink-soft);white-space:nowrap;max-width:45%;overflow:hidden;text-overflow:ellipsis;}
+  .sb-row.run{border-color:var(--accent);}
+  .sb-row.ok .sb-st{color:#1a7f4b;font-weight:600;}
+  .sb-row.err .sb-st{color:#c0392b;font-weight:600;}
 </style>
 <script>
 // ================== JADIKAN HASIL SCAN (PDF / Word → tampilan hasil scan mesin) ==================
@@ -10566,6 +10573,172 @@ tabs.forEach(t=>{
       console.error(err); showError(err.message||'Gagal menyambungkan PDF.'); setStatus('');
     }finally{mgRunning=false; mgRender();}
   });
+  // ---------- scan banyak file sekaligus (PDF / Word / foto, diproses berurutan) ----------
+  const isImgF=f=>/^image\/(jpeg|png|webp|gif|bmp)$/i.test(f.type)||/\.(jpe?g|png|webp|gif|bmp)$/i.test(f.name);
+  async function sbOpenImage(f){
+    const url=URL.createObjectURL(f);
+    let im;
+    try{
+      im=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('Gambar tidak bisa dibaca.'));i.src=url;});
+    }catch(e){URL.revokeObjectURL(url);throw e;}
+    const nw=im.naturalWidth||im.width||1, nh=im.naturalHeight||im.height||1;
+    const wPt=nw>nh?841.89:595.28, hPt=wPt*nh/nw;
+    return {
+      count:1, kind:'Gambar',
+      async page(i,dpi){
+        const tw=wPt/72*dpi, th=hPt/72*dpi, s=pxLimit(tw,th,1);
+        const cv=document.createElement('canvas'); cv.width=Math.max(1,Math.round(tw*s)); cv.height=Math.max(1,Math.round(th*s));
+        const x=cv.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,cv.width,cv.height); x.imageSmoothingQuality='high';
+        x.drawImage(im,0,0,cv.width,cv.height);
+        return {cv,wPt,hPt};
+      },
+      dispose(){URL.revokeObjectURL(url);}
+    };
+  }
+  const sbCard=document.createElement('div'); sbCard.className='card'; sbCard.id='sbCard';
+  sbCard.innerHTML=
+    '<h2>Scan banyak file sekaligus</h2>'+
+    '<p class="sub">Pilih beberapa file sekaligus, misalnya 8 file. Boleh campur PDF, Word (.docx), dan foto (JPG/PNG/WEBP). Semua diproses otomatis satu per satu dengan gaya yang sama. Di HP, kalau halamannya banyak pilih 100–150 dpi supaya tidak berat. Diproses di browser, tidak diunggah ke server.</p>'+
+    '<div class="drop-row" style="grid-template-columns:1fr;"><label class="dropzone" id="sbDz"><input type="file" id="sbInput" multiple accept="application/pdf,.pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*,.jpg,.jpeg,.png,.webp">'+
+    '<span class="icon">'+IC('M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5')+'</span><span class="label">Pilih banyak file</span><span class="hint">atau seret ke sini</span></label></div>'+
+    '<div id="sbList" style="margin-top:12px;display:flex;flex-direction:column;gap:6px;"></div>'+
+    '<div class="xi-opts" style="flex-direction:column;align-items:stretch;gap:12px;margin-top:12px;">'+
+      '<label class="xi-f"><span class="l">Gaya hasil scan</span><select id="sbStyle">'+STY_OPTS+'</select></label>'+
+      '<p class="note" id="sbStyleNote" style="margin:-4px 0 0;font-size:12.5px;"></p>'+
+      '<label class="xi-f"><span class="l">Ketajaman / resolusi</span><select id="sbDpi">'+OPT('100','100 dpi (file kecil)')+OPT('150','150 dpi (disarankan)',1)+OPT('200','200 dpi (lebih tajam)')+OPT('300','300 dpi (sangat tajam, berat di HP)')+'</select></label>'+
+      '<label class="xi-f"><span class="l">Hasil akhir</span><select id="sbOut">'+OPT('zip','Satu PDF per file (diunduh sebagai ZIP)',1)+OPT('merge','Gabung semua jadi satu PDF')+'</select></label>'+
+    '</div>'+
+    '<div class="sf-bar" id="sbBar"><i id="sbBarI"></i></div>'+
+    '<div class="hint-row"><span class="note" id="sbNote"></span><div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn ghost" id="sbClear" type="button">Kosongkan</button><button class="btn gold" id="sbGo" type="button" disabled>Scan semua &amp; unduh</button></div></div>';
+  $('#mgCard',view).before(sbCard);
+  const sbIn=$('#sbInput',sbCard), sbDz=$('#sbDz',sbCard), sbList=$('#sbList',sbCard), sbSty=$('#sbStyle',sbCard), sbStyNote=$('#sbStyleNote',sbCard),
+        sbDpi=$('#sbDpi',sbCard), sbOut=$('#sbOut',sbCard), sbBarWrap=$('#sbBar',sbCard), sbBarI=$('#sbBarI',sbCard),
+        sbNote=$('#sbNote',sbCard), sbGo=$('#sbGo',sbCard), sbClear=$('#sbClear',sbCard);
+  let sbFiles=[], sbRunning=false;
+  function sbApplyStyle(){
+    const S=STY[sbSty.value]; if(!S)return;
+    sbStyNote.textContent=S.d;
+    if([...sbDpi.options].some(op=>op.value===String(S.dpi)))sbDpi.value=String(S.dpi);
+  }
+  sbSty.addEventListener('change',sbApplyStyle); sbApplyStyle();
+  const sbStLabel={wait:'Menunggu',run:'Memproses...',ok:'Selesai',err:'Gagal'};
+  function sbRowUpdate(i){
+    const it=sbFiles[i]; if(!it||!it.el)return;
+    it.el.className='sb-row'+(it.st==='run'?' run':it.st==='ok'?' ok':it.st==='err'?' err':'');
+    it.stEl.textContent=it.msg||sbStLabel[it.st]; it.stEl.title=it.msg||'';
+  }
+  function sbRender(){
+    sbList.innerHTML='';
+    sbFiles.forEach((it,i)=>{
+      const row=document.createElement('div'); row.className='sb-row';
+      const nm=document.createElement('span'); nm.className='sb-nm'; nm.textContent=(i+1)+'. '+it.f.name+' ('+fmt(it.f.size)+')';
+      const st=document.createElement('span'); st.className='sb-st';
+      row.appendChild(nm); row.appendChild(st);
+      const mk=(t,title,fn,dis)=>{const b=document.createElement('button');b.type='button';b.className='btn ghost';b.textContent=t;b.title=title;b.disabled=!!dis;b.style.cssText='padding:4px 10px;min-height:32px;';b.addEventListener('click',fn);row.appendChild(b);};
+      mk('↑','Naik',()=>{[sbFiles[i-1],sbFiles[i]]=[sbFiles[i],sbFiles[i-1]];sbRender();},i===0||sbRunning);
+      mk('↓','Turun',()=>{[sbFiles[i+1],sbFiles[i]]=[sbFiles[i],sbFiles[i+1]];sbRender();},i===sbFiles.length-1||sbRunning);
+      mk('✕','Hapus',()=>{sbFiles.splice(i,1);sbRender();},sbRunning);
+      it.el=row; it.stEl=st; sbList.appendChild(row); sbRowUpdate(i);
+    });
+    sbGo.disabled=!sbFiles.length||sbRunning; sbClear.disabled=!sbFiles.length||sbRunning;
+    sbNote.textContent=sbFiles.length?(sbFiles.length+' file dipilih'):'';
+  }
+  function sbAdd(list){
+    if(sbRunning)return;
+    const all=[...list], ok=all.filter(f=>isPdf(f)||isDocx(f)||isImgF(f));
+    if(!ok.length){showError(all.some(f=>/\.doc$/i.test(f.name))?'Format .doc (Word lama) belum didukung. Simpan dulu sebagai .docx di Word, lalu coba lagi.':'Pilih file PDF, Word (.docx), atau foto (JPG/PNG/WEBP).');return;}
+    clearError();
+    const key=f=>f.name+'|'+f.size+'|'+f.lastModified, have=new Set(sbFiles.map(x=>key(x.f)));
+    const fresh=ok.filter(f=>!have.has(key(f)));
+    sbFiles=sbFiles.concat(fresh.map(f=>({f,st:'wait',msg:''}))).sort((a,b)=>natCmp(a.f,b.f));
+    sbRender();
+    const skipped=all.length-ok.length;
+    if(skipped>0)sbNote.textContent+=' · '+skipped+' file dilewati (format tidak didukung)';
+  }
+  sbIn.addEventListener('change',()=>{sbAdd(sbIn.files);sbIn.value='';});
+  ['dragover','dragenter'].forEach(ev=>sbDz.addEventListener(ev,e=>{e.preventDefault();sbDz.classList.add('drag');}));
+  ['dragleave','drop'].forEach(ev=>sbDz.addEventListener(ev,e=>{e.preventDefault();sbDz.classList.remove('drag');}));
+  sbDz.addEventListener('drop',e=>{if(e.dataTransfer&&e.dataTransfer.files.length)sbAdd(e.dataTransfer.files);});
+  sbClear.addEventListener('click',()=>{if(sbRunning)return;sbFiles=[];sbRender();});
+  sbGo.addEventListener('click',async()=>{
+    if(!sbFiles.length||sbRunning)return;
+    sbRunning=true; clearError(); sbFiles.forEach(x=>{x.st='wait';x.msg='';}); sbRender();
+    sbBarWrap.style.display='block'; sbBarI.style.width='0';
+    const S=STY[sbSty.value]||STY.std, total=sbFiles.length, merge=sbOut.value==='merge', used={}, results=[];
+    const o={style:sbSty.value,mode:S.mode,lvl:S.lvl,dpi:+sbDpi.value,skew:!!S.skew,shadow:!!S.shadow,dust:!!S.dust,q:S.q/100};
+    const baseSeed=1+Math.floor(Math.random()*1e6);
+    let fin='', mergeDoc=null, mergePages=0;
+    try{
+      const {PDFDocument}=PDFLib;
+      if(merge)mergeDoc=await PDFDocument.create();
+      for(let fi=0;fi<total;fi++){
+        const it=sbFiles[fi]; it.st='run'; it.msg='Membuka...'; sbRowUpdate(fi);
+        sbNote.textContent='File '+(fi+1)+' dari '+total+': '+it.f.name;
+        let s=null, doc=null, added=0;
+        try{
+          s=isPdf(it.f)?await openPdf(it.f):isDocx(it.f)?await openWord(it.f):await sbOpenImage(it.f);
+          doc=merge?mergeDoc:await PDFDocument.create();
+          for(let i=0;i<s.count;i++){
+            it.msg='Halaman '+(i+1)+'/'+s.count; sbRowUpdate(fi);
+            sbBarI.style.width=Math.round((fi+i/s.count)/total*100)+'%';
+            const pg=await s.page(i,o.dpi);
+            const sc=scanCanvas(pg.cv,o,baseSeed+fi*977+i*101);
+            pg.cv.width=0;
+            const jpg=await canvasJpg(sc,o.q); sc.width=0;
+            const img=await doc.embedJpg(jpg);
+            doc.addPage([pg.wPt,pg.hPt]).drawImage(img,{x:0,y:0,width:pg.wPt,height:pg.hPt});
+            added++;
+            await sleep(0);
+          }
+          if(merge)mergePages+=added;
+          else{
+            let nm=baseName(it.f.name)+'-scan.pdf', n=2;
+            while(used[nm]){nm=baseName(it.f.name)+'-scan-'+(n++)+'.pdf';}
+            used[nm]=1; results.push({name:nm,bytes:await doc.save()});
+          }
+          it.st='ok'; it.msg='Selesai · '+added+' hal';
+        }catch(err){
+          console.error(err);
+          if(merge&&doc&&added){for(let r=0;r<added;r++)doc.removePage(doc.getPageCount()-1);}
+          it.st='err'; it.msg=err.message&&!/^(\w+Error|Failed)/.test(err.message)?err.message:'Gagal diproses';
+        }finally{
+          if(s){try{s.dispose();}catch(e){}}
+          sbRowUpdate(fi);
+        }
+        sbBarI.style.width=Math.round((fi+1)/total*100)+'%';
+        await sleep(0);
+      }
+      const okN=sbFiles.filter(x=>x.st==='ok').length, errN=total-okN;
+      if(!okN)throw new Error('Tidak ada file yang berhasil diproses. Lihat pesan di tiap file.');
+      const tail=errN?' '+errN+' file gagal, lihat daftar.':'';
+      if(merge){
+        sbNote.textContent='Menyusun PDF...';
+        const bytes=await mergeDoc.save();
+        download(new Blob([bytes],{type:'application/pdf'}),'hasil-scan-gabungan.pdf');
+        fin='Selesai! '+okN+' file ('+mergePages+' halaman) digabung jadi 1 PDF ('+fmt(bytes.length)+') dan sudah diunduh.'+tail;
+      }else if(results.length===1){
+        download(new Blob([results[0].bytes],{type:'application/pdf'}),results[0].name);
+        fin='Selesai! PDF hasil scan ('+fmt(results[0].bytes.length)+') sudah diunduh.'+tail;
+      }else if(typeof JSZip!=='undefined'){
+        sbNote.textContent='Membuat file ZIP...';
+        const z=new JSZip(); results.forEach(r=>z.file(r.name,r.bytes));
+        const blob=await z.generateAsync({type:'blob',compression:'STORE'});
+        download(blob,'hasil-scan-'+results.length+'-file.zip');
+        fin='Selesai! '+results.length+' file PDF hasil scan (ZIP, '+fmt(blob.size)+') sudah diunduh.'+tail;
+      }else{
+        for(const r of results){download(new Blob([r.bytes],{type:'application/pdf'}),r.name);await sleep(500);}
+        fin='Selesai! '+results.length+' file PDF sudah diunduh. Kalau ada yang tidak terunduh, izinkan unduhan berganda di browser.'+tail;
+      }
+    }catch(err){
+      console.error(err); showError(err.message||'Gagal membuat hasil scan.'); fin='';
+    }finally{
+      sbRunning=false; sbRender();
+      if(fin)sbNote.textContent=fin;
+      setTimeout(()=>{sbBarWrap.style.display='none';},1500);
+    }
+  });
+  sbRender();
+
   mgRender();
 })();
 </script>
