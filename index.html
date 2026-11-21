@@ -9,6 +9,9 @@
 if(t!=='light'&&t!=='dark')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
 document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 </script>
+<script>
+if(/^#verif=/.test(location.hash)){var vst=document.createElement('style');vst.id='verifHideApp';vst.textContent='body>*:not(#verifOverlay){display:none!important}body{background:#eef2f7!important}';document.head.appendChild(vst);}
+</script>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1E3350">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1823,6 +1826,7 @@ document.documentElement.setAttribute('data-theme',t);}catch(e){document.documen
             <select id="sgQrMode" style="width:100%;box-sizing:border-box;">
               <option value="person">Data penandatangan</option>
               <option value="link">Tautan / alamat web / Google Drive</option>
+              <option value="verif">Verifikasi TTD resmi (scan → tampil TTD manual)</option>
             </select>
             <div id="sgQrLinkFields" style="display:none;">
               <label for="sgQrLink">Tautan atau alamat web</label>
@@ -1842,6 +1846,20 @@ document.documentElement.setAttribute('data-theme',t);}catch(e){document.documen
             <input type="text" id="sgQrOrg" placeholder="Contoh: MAN 1 Kota">
             <label class="sg-qr-chk"><input type="checkbox" id="sgQrDate" checked> Sertakan tanggal penandatanganan</label>
             <label class="sg-qr-chk"><input type="checkbox" id="sgQrCaption" checked> Tampilkan nama &amp; jabatan di bawah QR</label>
+            </div>
+            <div id="sgQrVerFields" style="display:none;">
+              <label for="sgQrVerBase">Alamat aplikasi ini di internet (tempat di-hosting)</label>
+              <input type="text" id="sgQrVerBase" inputmode="url" autocapitalize="off" autocomplete="off" placeholder="Contoh: https://namaakun.github.io/alat-pdf/">
+              <label for="sgQrVerSize">Detail TTD manual di dalam QR</label>
+              <select id="sgQrVerSize" style="width:100%;box-sizing:border-box;">
+                <option value="80">Ringkas — QR longgar, paling mudah dipindai</option>
+                <option value="96" selected>Sedang (disarankan)</option>
+                <option value="128">Detail — TTD lebih jelas, QR lebih rapat</option>
+              </select>
+              <label for="sgQrVerStmt">Pernyataan di halaman verifikasi (opsional)</label>
+              <input type="text" id="sgQrVerStmt" placeholder="Kosongkan untuk pernyataan standar “tanda tangan resmi”">
+              <div class="sg-qr-prev" style="margin-top:10px;"><canvas id="sgQrVerPrev" width="0" height="0"></canvas></div>
+              <p class="sub" id="sgQrVerSigStat" style="margin:6px 0 0;font-size:12.5px;">Pratinjau TTD manual seperti yang akan tampil saat QR dipindai.</p>
             </div>
             <label for="sgQrText">Isi barcode (bisa diubah, mis. diganti tautan verifikasi)</label>
             <textarea id="sgQrText" rows="5"></textarea>
@@ -6232,6 +6250,7 @@ function sgQrNormLink(raw){
   return 'https://' + t.replace(/^\/+/, '');
 }
 function sgQrBuildText(){
+  if(sgQrMode() === 'verif') return sgQrVerText();
   if(sgQrMode() === 'link') return sgQrNormLink(document.getElementById('sgQrLink').value);
   const v = id => document.getElementById(id).value.trim();
   const lines = ['TANDA TANGAN ELEKTRONIK'];
@@ -6317,6 +6336,150 @@ document.getElementById('sgQrDone').addEventListener('click', ()=>{
   sgRebuild();
   setTimeout(()=> document.getElementById('sgCleanCard').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
 });
+
+// ---------- QR Verifikasi TTD resmi: scan -> tampil TTD manual + status resmi ----------
+// Isi QR = alamat aplikasi + #verif=<data>. Data (nama, jabatan, tanggal, TTD manual 1-bit) ikut di dalam
+// tautan, jadi tidak butuh server. Halaman verifikasinya adalah aplikasi ini sendiri (lihat overlay di akhir file).
+const sgQrVer = { sig: null, src: null, id: '', key: 'ap:sgQrVerBase' };
+function sgQrVerSnap(){
+  // simpan salinan TTD manual terakhir sebelum tergantikan gambar QR
+  const c = sgS.sigCanvas;
+  if(c && !sgS.isQr && c.width > 1 && c !== sgQrVer.src){
+    const k = document.createElement('canvas');
+    k.width = c.width; k.height = c.height;
+    k.getContext('2d').drawImage(c, 0, 0);
+    sgQrVer.sig = k; sgQrVer.src = c;
+  }
+}
+function sgQrVerBitmap(W){
+  const src = sgQrVer.sig;
+  if(!src) return null;
+  const asp = src.width / src.height;
+  let w = W, h = Math.max(8, Math.round(w / asp));
+  const maxH = Math.round(W * 0.6);
+  if(h > maxH){ h = maxH; w = Math.max(8, Math.round(h * asp)); }
+  let cur = src;
+  while(cur.width / 2 >= w){   // perkecil bertahap supaya garis tipis tidak hilang
+    const t = document.createElement('canvas');
+    t.width = Math.ceil(cur.width / 2); t.height = Math.max(1, Math.ceil(cur.height / 2));
+    const tx = t.getContext('2d');
+    tx.imageSmoothingQuality = 'high';
+    tx.drawImage(cur, 0, 0, t.width, t.height);
+    cur = t;
+  }
+  const f = document.createElement('canvas');
+  f.width = w; f.height = h;
+  const fx = f.getContext('2d', { willReadFrequently: true });
+  fx.fillStyle = '#fff'; fx.fillRect(0, 0, w, h);
+  fx.imageSmoothingQuality = 'high';
+  fx.drawImage(cur, 0, 0, w, h);
+  const d = fx.getImageData(0, 0, w, h).data;
+  const bits = new Uint8Array(w * h);
+  for(let i = 0, p = 0; i < bits.length; i++, p += 4){
+    bits[i] = (0.299 * d[p] + 0.587 * d[p+1] + 0.114 * d[p+2]) < 175 ? 1 : 0;
+  }
+  return { w, h, bits };
+}
+function sgQrVerRle(bits){
+  // jalur panjang bergantian putih/tinta (mulai putih), tiap panjang ditulis 7-bit per byte
+  const out = [];
+  let cur = 0, run = 0;
+  for(let i = 0; i < bits.length; i++){
+    if(bits[i] === cur) run++;
+    else { out.push(run); cur = bits[i]; run = 1; }
+  }
+  out.push(run);
+  const bytes = [];
+  out.forEach(r => { while(r >= 128){ bytes.push((r & 127) | 128); r >>= 7; } bytes.push(r); });
+  return bytes;
+}
+function sgQrVerB64(bytes){
+  let s = '';
+  for(let i = 0; i < bytes.length; i += 0x4000) s += String.fromCharCode.apply(null, bytes.slice(i, i + 0x4000));
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function sgQrVerBase(){
+  let t = sgQrNormLink(document.getElementById('sgQrVerBase').value).replace(/#.*$/, '');
+  return /^https?:\/\/[^\s]+$/i.test(t) ? t : '';
+}
+function sgQrVerDrawPrev(bm){
+  const pv = document.getElementById('sgQrVerPrev');
+  if(!bm){ pv.width = 0; pv.height = 0; return; }
+  const t = document.createElement('canvas');
+  t.width = bm.w; t.height = bm.h;
+  const tx = t.getContext('2d');
+  const img = tx.createImageData(bm.w, bm.h);
+  for(let i = 0, p = 0; i < bm.bits.length; i++, p += 4){
+    if(bm.bits[i]){ img.data[p] = 15; img.data[p+1] = 27; img.data[p+2] = 77; img.data[p+3] = 255; }
+  }
+  tx.putImageData(img, 0, 0);
+  pv.width = bm.w * 3; pv.height = bm.h * 3; pv.style.width = '100%'; pv.style.maxWidth = '300px';
+  const px = pv.getContext('2d');
+  px.fillStyle = '#fff'; px.fillRect(0, 0, pv.width, pv.height);
+  px.imageSmoothingEnabled = true; px.imageSmoothingQuality = 'high';
+  px.drawImage(t, 0, 0, pv.width, pv.height);
+}
+function sgQrVerText(){
+  sgQrVerSnap();
+  const v = id => document.getElementById(id).value.trim();
+  const base = sgQrVerBase();
+  const bm = sgQrVerBitmap(parseInt(document.getElementById('sgQrVerSize').value, 10) || 96);
+  sgQrVerDrawPrev(bm);
+  if(!bm || !v('sgQrName') || !base) return '';
+  if(!sgQrVer.id) sgQrVer.id = Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
+  let ymd = '';
+  if(document.getElementById('sgQrDate').checked){
+    const n = new Date();
+    ymd = n.getFullYear() + String(n.getMonth() + 1).padStart(2, '0') + String(n.getDate()).padStart(2, '0');
+  }
+  const meta = [bm.w, bm.h, v('sgQrName'), v('sgQrRole'), v('sgQrNip'), v('sgQrOrg'), ymd, sgQrVer.id, v('sgQrVerStmt')];
+  while(meta.length > 7 && !meta[meta.length - 1]) meta.pop();   // buang ekor kosong supaya QR lebih ringkas
+  const head = Array.from(new TextEncoder().encode(JSON.stringify(meta)));
+  const all = head.concat([0], sgQrVerRle(bm.bits));
+  return base + '#verif=' + sgQrVerB64(all);
+}
+(function(){
+  const g = id => document.getElementById(id);
+  // alamat aplikasi: pakai yang tersimpan, atau alamat halaman ini kalau dibuka dari internet
+  try{
+    const saved = localStorage.getItem(sgQrVer.key);
+    if(saved) g('sgQrVerBase').value = saved;
+    else if(/^https?:$/.test(location.protocol)) g('sgQrVerBase').value = location.origin + location.pathname.replace(/index\.html$/i, '');
+  }catch(e){
+    if(/^https?:$/.test(location.protocol)) g('sgQrVerBase').value = location.origin + location.pathname.replace(/index\.html$/i, '');
+  }
+  g('sgQrVerBase').addEventListener('input', ()=>{
+    try{ localStorage.setItem(sgQrVer.key, g('sgQrVerBase').value.trim()); }catch(e){}
+    sgQr.manual = false; sgQrRender();
+  });
+  g('sgQrVerSize').addEventListener('change', ()=>{ sgQr.manual = false; sgQrRender(); });
+  g('sgQrVerStmt').addEventListener('input', ()=>{ sgQr.manual = false; sgQrRender(); });
+  g('sgQrMode').addEventListener('change', ()=>{
+    g('sgQrVerFields').style.display = sgQrMode() === 'verif' ? '' : 'none';
+    sgQrRender();
+  });
+  // pesan info khusus mode verifikasi (menimpa pesan umum, fungsi aslinya tidak diubah)
+  const orig = sgQrRender;
+  sgQrRender = function(){
+    orig();
+    if(sgQrMode() !== 'verif') return;
+    const info = g('sgQrInfo');
+    const st = g('sgQrVerSigStat');
+    if(!sgQrVer.sig){
+      info.textContent = 'Belum ada tanda tangan manual. Buat dulu di “Tulis langsung”, “Foto”, atau “Ambil dari dokumen”, lalu kembali ke sini.';
+      st.textContent = 'Belum ada TTD manual.';
+      return;
+    }
+    if(!g('sgQrName').value.trim()){ info.textContent = 'Isi nama penandatangan dulu.'; return; }
+    if(!sgQrVerBase()){ info.textContent = 'Isi alamat aplikasi di internet (harus diawali https://).'; return; }
+    if(!sgQr.canvas) return;
+    let n = 0;
+    try{ n = QRGen.build(g('sgQrText').value).size; }catch(e){}
+    st.textContent = 'Pratinjau TTD manual seperti yang akan tampil saat QR dipindai.';
+    info.textContent = 'QR ' + n + '×' + n + ' modul. Saat dipindai: tampil TTD manual + status resmi.'
+      + (n > 93 ? ' QR cukup rapat: pilih detail “Ringkas”, dan cetak QR minimal 3,5 cm.' : '');
+  };
+})();
 
 // ---------- Langkah 1: ambil gambar ----------
 sgE.inFile.addEventListener('change', (e)=>{
@@ -12504,6 +12667,96 @@ tabs.forEach(t=>{
     bar.box.classList.toggle('need', !its.length);
   }
   new MutationObserver(refresh).observe(g('edList'), { childList:true });
+})();
+</script>
+
+<script>
+/* ===== Halaman verifikasi TTD resmi — tampil saat QR dipindai (alamat#verif=...) ===== */
+(function(){
+  var m = /^#verif=([A-Za-z0-9_-]+)$/.exec(location.hash);
+  if(!m) return;
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  var ov = document.createElement('div');
+  ov.id = 'verifOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:2147483000;overflow:auto;background:#eef2f7;font-family:"Plus Jakarta Sans",Arial,sans-serif;color:#1b2433;-webkit-text-size-adjust:100%;';
+  function close(){
+    var st = document.getElementById('verifHideApp'); if(st) st.remove();
+    ov.remove();
+    try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){}
+  }
+  var html = '';
+  try{
+    var b = m[1].replace(/-/g, '+').replace(/_/g, '/');
+    while(b.length % 4) b += '=';
+    var bin = atob(b), bytes = new Uint8Array(bin.length);
+    for(var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    var z = bytes.indexOf(0);
+    if(z < 0) throw new Error('format');
+    var meta = JSON.parse(new TextDecoder().decode(bytes.subarray(0, z)));
+    var w = meta[0], h = meta[1];
+    if(!(w > 0 && h > 0 && w * h <= 200000)) throw new Error('ukuran');
+    var cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    var cx = cv.getContext('2d');
+    var img = cx.createImageData(w, h);
+    var pos = z + 1, idx = 0, cur = 0, total = w * h;
+    while(pos < bytes.length && idx < total){
+      var r = 0, sh = 0, bb;
+      do{ bb = bytes[pos++]; r |= (bb & 127) << sh; sh += 7; }while((bb & 128) && pos < bytes.length);
+      if(cur){
+        for(var k = idx; k < idx + r && k < total; k++){ var p = k * 4; img.data[p] = 15; img.data[p+1] = 27; img.data[p+2] = 77; img.data[p+3] = 255; }
+      }
+      idx += r; cur ^= 1;
+    }
+    cx.putImageData(img, 0, 0);
+    var big = document.createElement('canvas');
+    big.width = w * 4; big.height = h * 4;
+    var bx = big.getContext('2d');
+    bx.imageSmoothingEnabled = true; bx.imageSmoothingQuality = 'high';
+    bx.drawImage(cv, 0, 0, big.width, big.height);
+    big.style.cssText = 'display:block;max-width:100%;height:auto;margin:0 auto;';
+    var name = meta[2] || '', role = meta[3] || '', nip = meta[4] || '', org = meta[5] || '', ymd = meta[6] || '', vid = meta[7] || '', stmt = meta[8] || '';
+    var tgl = '';
+    if(/^\d{8}$/.test(ymd)){
+      tgl = new Date(+ymd.slice(0,4), +ymd.slice(4,6) - 1, +ymd.slice(6,8)).toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+    }
+    function row(l, v){ return v ? '<div style="display:flex;gap:10px;padding:8px 0;border-top:1px solid #e6eaf0;font-size:14px;"><div style="flex:0 0 110px;color:#6b7686;">' + l + '</div><div style="flex:1;font-weight:600;word-break:break-word;">' + esc(v) + '</div></div>' : ''; }
+    html =
+      '<div style="max-width:460px;margin:0 auto;padding:22px 16px 40px;">' +
+      '<div style="text-align:center;font-size:13px;letter-spacing:.6px;color:#6b7686;font-weight:600;margin-bottom:10px;">VERIFIKASI TANDA TANGAN</div>' +
+      '<div style="background:#fff;border-radius:16px;box-shadow:0 6px 24px rgba(20,30,60,.10);overflow:hidden;">' +
+        '<div style="background:#16a34a;color:#fff;text-align:center;padding:16px 12px;">' +
+          '<div style="font-size:30px;line-height:1;">&#10004;</div>' +
+          '<div style="font-size:18px;font-weight:800;margin-top:4px;letter-spacing:.4px;">TANDA TANGAN RESMI</div>' +
+        '</div>' +
+        '<div style="padding:18px 18px 8px;">' +
+          '<div style="font-size:12.5px;color:#6b7686;margin-bottom:6px;">Tanda tangan manual penandatangan</div>' +
+          '<div id="verifSigBox" style="border:1px dashed #c9d1dd;border-radius:10px;padding:12px;background:#fff;"></div>' +
+        '</div>' +
+        '<div style="padding:6px 18px 4px;">' +
+          row('Nama', name) + row('Jabatan', role) + row('NIP', nip) + row('Instansi', org) + row('Tanggal', tgl) + row('No. verifikasi', vid) +
+        '</div>' +
+        '<div style="margin:12px 18px 18px;padding:12px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;font-size:13.5px;line-height:1.5;color:#14532d;">' +
+          esc(stmt || 'Tanda tangan di atas adalah tanda tangan asli dan resmi dari penandatangan tersebut.') +
+          '<div style="margin-top:6px;color:#166534;">Cocokkan tanda tangan ini dengan tanda tangan pada dokumen yang Anda pegang.</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="text-align:center;margin-top:16px;"><button id="verifCloseBtn" type="button" style="border:0;background:#1b2433;color:#fff;border-radius:999px;padding:10px 20px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;">Buka Alat PDF</button></div>' +
+      '</div>';
+    ov.innerHTML = html;
+    document.body.appendChild(ov);
+    document.getElementById('verifSigBox').appendChild(big);
+  }catch(e){
+    ov.innerHTML = '<div style="max-width:420px;margin:60px auto;padding:0 16px;text-align:center;">' +
+      '<div style="background:#fff;border-radius:16px;box-shadow:0 6px 24px rgba(20,30,60,.10);padding:28px 20px;">' +
+      '<div style="font-size:30px;color:#dc2626;">&#9888;</div>' +
+      '<div style="font-size:17px;font-weight:800;margin:6px 0;">Data verifikasi tidak valid</div>' +
+      '<div style="font-size:13.5px;color:#6b7686;line-height:1.5;">QR ini rusak atau terpotong. Jangan percaya tanda tangan ini sebelum dikonfirmasi ke penandatangan.</div>' +
+      '<div style="margin-top:16px;"><button id="verifCloseBtn" type="button" style="border:0;background:#1b2433;color:#fff;border-radius:999px;padding:10px 20px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;">Buka Alat PDF</button></div>' +
+      '</div></div>';
+    document.body.appendChild(ov);
+  }
+  document.getElementById('verifCloseBtn').addEventListener('click', close);
 })();
 </script>
 
