@@ -605,6 +605,12 @@ if(/^#verif=/.test(location.hash)){var vst=document.createElement('style');vst.i
   .ed-cover{position:absolute;pointer-events:none}
   .ed-txt{position:absolute;white-space:pre;line-height:1;cursor:grab;touch-action:none;user-select:none}
   .ed-txt.sel{outline:2px dashed var(--gold);outline-offset:2px}
+  .ed-gl{position:absolute;pointer-events:none;z-index:25}
+  .ed-gl.v{top:0;bottom:0;width:0;border-left:1px dashed rgba(30,51,80,.35)}
+  .ed-gl.h{left:0;right:0;height:0;border-top:1px dashed rgba(30,51,80,.35)}
+  .ed-gl.on{border-color:#E0245E;border-style:solid}
+  .ed-gl.v.on{border-left-width:2px}
+  .ed-gl.h.on{border-top-width:2px}
   .ed-panel{
     display:block !important;
     border:1px solid var(--line-strong);
@@ -1018,6 +1024,7 @@ if(/^#verif=/.test(location.hash)){var vst=document.createElement('style');vst.i
     <button class="tool-tab" id="tabPdfToOffice" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 8H7l3-3M4 16h13l-3 3"/></svg><span>PDF ke Word/Excel</span></button>
     <button class="tool-tab" id="tabImages" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg><span>Gambar ke PDF</span></button>
     <button class="tool-tab" id="tabPdfToImg" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 9v6m-2.5-2.5L12 15l2.5-2.5"/></svg><span>PDF ke JPG/PNG</span></button>
+    <button class="tool-tab" id="tabZip" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg><span>Buat ZIP</span></button>
     <div class="side-foot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>Semua file diproses di perangkatmu dan tidak dikirim ke server mana pun.</span></div>
   </nav>
   <div class="nav-backdrop" id="navBackdrop"></div>
@@ -1144,6 +1151,12 @@ if(/^#verif=/.test(location.hash)){var vst=document.createElement('style');vst.i
         <div class="home-tool-icon ic-navy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 9v6m-2.5-2.5L12 15l2.5-2.5"/></svg></div>
         <div class="home-tool-name">PDF → JPG/PNG</div>
         <p class="home-tool-desc">Ekspor halaman PDF pilihan menjadi gambar resolusi tinggi.</p>
+        <div class="home-tool-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      </button>
+      <button class="home-tool-card" data-tab="tabZip" type="button">
+        <div class="home-tool-icon ic-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg></div>
+        <div class="home-tool-name">Buat ZIP</div>
+        <p class="home-tool-desc">Gabungkan banyak file atau folder menjadi satu arsip ZIP, langsung di browser.</p>
         <div class="home-tool-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
       </button>
     </div>
@@ -1598,6 +1611,8 @@ if(/^#verif=/.test(location.hash)){var vst=document.createElement('style');vst.i
         <button class="btn ghost" id="edAddBtn" type="button">＋ Tambah teks</button>
         <button class="btn ghost" id="edEraseBtn" type="button">Hapus tulisan lama</button>
         <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-soft);"><input type="checkbox" id="edHighlight" checked> Sorot teks</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-soft);"><input type="checkbox" id="edGuide" checked> Garis bantu tengah</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-soft);" title="Warna, ketebalan, dan blur diambil sekali dari tulisan asli lalu dikunci"><input type="checkbox" id="edLock" checked> Kunci gaya asli</label>
       </div>
 
       <div class="ed-panel off" id="edPanel">
@@ -1613,6 +1628,24 @@ if(/^#verif=/.test(location.hash)){var vst=document.createElement('style');vst.i
           <span class="lbl">Font</span><select id="edFont"><option value="h">Sans (Arial/Helvetica)</option><option value="t">Serif (Times)</option><option value="c">Mono (Courier)</option></select>
           <button class="btn ghost" id="edBold" type="button" title="Tebal"><b>B</b></button>
           <button class="btn ghost" id="edItal" type="button" title="Miring"><i>I</i></button>
+        </div>
+        <div class="row ed-tw-row">
+          <span class="lbl">Ketebalan</span>
+          <button class="btn ghost" id="edTwMinus" type="button" title="Lebih tipis">−</button>
+          <input type="range" id="edTw" min="-3" max="8" step="0.25" value="0" style="flex:1;min-width:110px;max-width:260px">
+          <button class="btn ghost" id="edTwPlus" type="button" title="Lebih tebal">+</button>
+          <input type="number" id="edTwNum" min="-3" max="8" step="any" value="0" style="width:74px" title="Nilai tepat, 0 = normal">
+          <span class="lbl">%</span>
+          <button class="btn ghost" id="edTwPre1" type="button" data-v="-1.5">Tipis</button>
+          <button class="btn ghost" id="edTwPre2" type="button" data-v="0">Normal</button>
+          <button class="btn ghost" id="edTwPre3" type="button" data-v="2.5">Tebal</button>
+          <button class="btn ghost" id="edTwPre4" type="button" data-v="5">Sangat tebal</button>
+          <button class="btn ghost" id="edTwAuto" type="button" title="Hitung ketebalan yang paling mirip dengan tulisan asli">Samakan dengan asli</button>
+        </div>
+        <div class="lbl" style="font-weight:400;margin-top:4px">Satuan: persen dari ukuran huruf. 0 = normal, plus = lebih tebal, minus = lebih tipis. Tombol <b>B</b> tetap untuk huruf tebal bawaan font.</div>
+        <div class="row">
+          <button class="btn ghost" id="edHomeBtn" type="button" title="Kembalikan ke posisi tulisan asli">⟲ Posisi asli</button>
+          <span class="lbl" style="font-weight:400">Geser halus: tombol panah (Shift = 10×)</span>
           <span style="flex:1"></span>
           <button class="btn ghost danger" id="edDelBtn" type="button">Hapus teks</button>
           <button class="btn ghost" id="edUndoBtn" type="button">↺ Kembalikan</button>
@@ -1626,7 +1659,7 @@ if(/^#verif=/.test(location.hash)){var vst=document.createElement('style');vst.i
           <label class="lbl" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="edCover" checked> Tutup tulisan lama</label>
         </div>
         <div class="row">
-          <span class="lbl">Tebal goresan</span><input type="range" id="edWb" min="-4" max="6" step="1" value="0" style="width:120px">
+          <span class="lbl" style="display:none">Tebal goresan</span><input type="range" id="edWb" min="-4" max="6" step="1" value="0" style="width:120px;display:none">
           <span class="lbl">Perluas penutup</span><input type="range" id="edExp" min="0" max="20" step="1" value="2" style="width:100px">
           <span class="lbl">Blur (efek scan)</span><input type="range" id="edBl" min="0" max="3" step="0.1" value="0.4" style="width:110px">
         </div>
@@ -2224,6 +2257,37 @@ if(/^#verif=/.test(location.hash)){var vst=document.createElement('style');vst.i
     </div>
   </div><!-- /viewUnlock -->
 
+
+  <div id="viewZip" style="display:none;">
+    <div class="card">
+      <h2>Buat arsip ZIP</h2>
+      <p class="sub">Masukkan file atau folder apa saja, lalu unduh sebagai satu file ZIP. Diproses di browser, tidak diunggah ke server.</p>
+      <div class="drop-row" style="grid-template-columns:1fr;">
+        <label class="dropzone" id="zipDz">
+          <input type="file" id="zipFiles" multiple>
+          <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg></span>
+          <span class="label">Pilih file</span>
+          <span class="hint">Boleh banyak sekaligus, atau seret ke sini</span>
+        </label>
+      </div>
+      <div class="toolbar" style="margin-top:12px;">
+        <label class="btn ghost" style="cursor:pointer;">📁 Tambah folder<input type="file" id="zipFolder" webkitdirectory multiple style="display:none"></label>
+        <button class="btn ghost" id="zipClearBtn" type="button">Kosongkan daftar</button>
+      </div>
+      <div id="zipList" style="margin-top:12px;display:flex;flex-direction:column;gap:6px;"></div>
+      <div id="zipTotal" class="sub" style="margin-top:8px;"></div>
+      <div class="toolbar" style="margin-top:12px;align-items:center;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;">Nama arsip <input type="text" id="zipName" value="arsip" style="width:150px"> <span>.zip</span></label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;">Kompresi
+          <select id="zipLevel"><option value="0">Tanpa kompres (tercepat)</option><option value="1">Cepat</option><option value="6" selected>Standar</option><option value="9">Maksimal (lebih lambat)</option></select>
+        </label>
+      </div>
+      <div class="toolbar" style="margin-top:12px;">
+        <button class="btn gold" id="zipBuildBtn" type="button">Buat &amp; unduh ZIP</button>
+      </div>
+      <p class="sub" style="margin-top:10px;font-size:12.5px;">Format RAR tidak bisa dibuat di browser (pembuatan RAR hanya diizinkan oleh WinRAR). ZIP bisa dibuka di semua HP dan komputer, termasuk oleh WinRAR dan ZArchiver.</p>
+    </div>
+  </div>
 
   <div id="viewQrRead" style="display:none;">
     <div class="card">
@@ -4562,7 +4626,7 @@ function edDraw(){
     if(e.cov) mk('ed-cover', { left:e.cov.x*k+'px', top:e.cov.y*k+'px', width:e.cov.w*k+'px', height:e.cov.h*k+'px', background:bgc });
     else if(e.match && e.cover !== false && e.bgS){ const R = edRegion(e); mk('ed-cover', { left:R.x*k+'px', top:R.y*k+'px', width:R.w*k+'px', height:R.h*k+'px', background:bgc }); }
     if(!e.text) return;
-    const t = mk('ed-txt'+(edS.sel===e.id||edS.hot===e.itemId?' sel':''), { left:e.x*k+'px', top:(e.y-e.fs*.82)*k+'px', fontSize:e.fs*k+'px', color:e.color, fontWeight:e.bold?700:400, fontStyle:e.ital?'italic':'normal', webkitTextStroke: e.match ? edStroke(e)*k+'px '+e.color : '0', filter: e.match ? `blur(${edBlur(e)*k}px)` : 'none', fontFamily:EDFAM[e.ff] });
+    const t = mk('ed-txt'+(edS.sel===e.id||edS.hot===e.itemId?' sel':''), { left:e.x*k+'px', top:(e.y-e.fs*edBase(e))*k+'px', fontSize:e.fs*k+'px', color:e.color, fontWeight:e.bold?700:400, fontStyle:e.ital?'italic':'normal', webkitTextStroke: e.match ? edStroke(e)*k+'px '+e.color : (edTW(e) ? Math.abs(edTW(e))/100*e.fs*k+'px '+(edTW(e) > 0 ? e.color : e.bg) : '0'), filter: e.match ? `blur(${edBlur(e)*k}px)` : 'none', fontFamily:EDFAM[e.ff] });
     t.textContent = e.text;
     edDrag(t, e);
   });
@@ -4581,6 +4645,7 @@ function edMake(i){
   e = { id:++edS.uid, itemId:i, cov:{ x:it.x-1.5, y:it.y-it.fs*.95, w:it.w+3, h:it.fs*1.25 },
     x:it.x, y:it.y, fs:it.fs, text:it.str, color:c.ink, bg:c.bg, bold:it.bold, ital:it.ital, ff:it.ff, match:false, cover:true, exp:2*edS.s, wb:0 };
   (edS.edits[p] = edS.edits[p] || []).push(e);
+  if(!it.scan){ try{ const t0 = edCalTW(e); if(t0 != null) e.tw = t0; }catch(_){} }   // samakan ketebalan dengan tulisan asli sejak awal
   return e;
 }
 function edPick(i){ edSelect(edMake(i).id); }
@@ -4634,7 +4699,7 @@ function edSelect(id, nf){
     edE.color.value = e.color;
     edE.bold.classList.toggle('on', e.bold);
     edG('edFont').value = e.ff; edG('edItal').classList.toggle('on', !!e.ital);
-    edG('edMatch').checked = !!e.match; edG('edCover').checked = e.cover !== false; edG('edWb').value = e.wb||0; edG('edExp').value = Math.round((e.exp||0)/edS.s); edG('edBl').value = edBlur(e);
+    edG('edMatch').checked = !!e.match; edG('edCover').checked = e.cover !== false; edG('edWb').value = e.wb||0; edTwUi(e); edG('edExp').value = Math.round((e.exp||0)/edS.s); edG('edBl').value = edBlur(e);
   }
   edDraw();
   if(e && !nf){
@@ -4648,15 +4713,47 @@ function edDrag(t, e){
     ev.stopPropagation();
     if(edS.sel !== e.id){ edSelect(e.id); return; }
     const sx = ev.clientX, sy = ev.clientY, ox = e.x, oy = e.y;
+    const p = edS.page, vp = edS.vp[p], L = edE.layer, useG = edG('edGuide').checked;
+    // titik acuan: tengah halaman + tulisan lain di halaman ini
+    const refs = [];
+    (edS.items[p]||[]).forEach((it,i)=>{
+      if(i === e.itemId) return;
+      const o = (edS.edits[p]||[]).find(x => x.itemId === i && (x.add || x.dirty));
+      if(o && o.id !== e.id) return;
+      refs.push({ x:it.x, y:it.y, w:it.w });
+    });
+    const mkG = c => { const d = document.createElement('div'); d.className = 'ed-gl ' + c; d.style.display = 'none'; L.appendChild(d); return d; };
+    let gv, gh, gcx, gcy;
+    if(useG){ gcx = mkG('v'); gcy = mkG('h'); gv = mkG('v on'); gh = mkG('h on'); gcx.style.display = gcy.style.display = ''; gcx.style.left = vp.w/2*edS.k + 'px'; gcy.style.top = vp.h/2*edS.k + 'px'; }
     t.setPointerCapture(ev.pointerId);
     const mv = m => {
       const dx = (m.clientX-sx)/edS.k, dy = (m.clientY-sy)/edS.k;
       if(Math.abs(dx)+Math.abs(dy) > 1){
-        e.x = ox+dx; e.y = oy+dy; e.dirty = true;
-        t.style.left = e.x*edS.k + 'px'; t.style.top = (e.y-e.fs*.82)*edS.k + 'px';
+        let nx = ox+dx, ny = oy+dy;
+        if(useG){
+          const thr = 7/edS.k, w = t.offsetWidth/edS.k, cyOff = e.fs*.32;
+          // sumbu X: kiri / tengah / kanan tulisan ini vs acuan
+          let bx = null, bd = thr;
+          const tryX = (cur, target, line) => { const d = Math.abs(cur-target); if(d <= bd){ bd = d; bx = { shift:target-cur, line }; } };
+          tryX(nx + w/2, vp.w/2, vp.w/2);
+          refs.forEach(r => { tryX(nx, r.x, r.x); tryX(nx + w/2, r.x + r.w/2, r.x + r.w/2); tryX(nx + w, r.x + r.w, r.x + r.w); });
+          // sumbu Y: garis dasar tulisan lurus dengan tulisan lain / tengah halaman
+          let by = null, bdy = thr;
+          const tryY = (cur, target, line) => { const d = Math.abs(cur-target); if(d <= bdy){ bdy = d; by = { shift:target-cur, line }; } };
+          tryY(ny - cyOff, vp.h/2, vp.h/2);
+          refs.forEach(r => tryY(ny, r.y, r.y));
+          if(bx){ nx += bx.shift; gv.style.display = ''; gv.style.left = bx.line*edS.k + 'px'; } else gv.style.display = 'none';
+          if(by){ ny += by.shift; gh.style.display = ''; gh.style.top = by.line*edS.k + 'px'; } else gh.style.display = 'none';
+        }
+        e.x = nx; e.y = ny; e.dirty = true;
+        t.style.left = e.x*edS.k + 'px'; t.style.top = (e.y-e.fs*edBase(e))*edS.k + 'px';
       }
     };
-    const up = () => { t.removeEventListener('pointermove', mv); t.removeEventListener('pointerup', up); t.removeEventListener('pointercancel', up); if(e.match && e.dirty){ edAuto(e); edDraw(); } };
+    const up = () => {
+      t.removeEventListener('pointermove', mv); t.removeEventListener('pointerup', up); t.removeEventListener('pointercancel', up);
+      [gv, gh, gcx, gcy].forEach(g => g && g.remove());
+      if(e.match && e.dirty){ edAuto(e); edDraw(); }
+    };
     t.addEventListener('pointermove', mv); t.addEventListener('pointerup', up); t.addEventListener('pointercancel', up);
   });
 }
@@ -4676,6 +4773,17 @@ edE.layer.addEventListener('click', ev=>{
 
 // ---------- Hapus tulisan lama (area penghapus) ----------
 const edBlur = e => e.bl ?? .4;
+// jarak garis dasar huruf dari tepi atas kotak teks (line-height:1), dibaca dari metrik font sebenarnya, supaya pratinjau = hasil unduhan
+const edBaseCache = {}, edBaseCtx = document.createElement('canvas').getContext('2d');
+function edBase(e){
+  const key = e.ff + (e.bold?'b':'') + (e.ital?'i':'');
+  if(edBaseCache[key] != null) return edBaseCache[key];
+  edBaseCtx.font = `${e.ital?'italic ':''}${e.bold?'bold ':''}100px ${EDFAM[e.ff]}`;
+  const m = edBaseCtx.measureText('Hg');
+  let r = .82;
+  if(m.fontBoundingBoxAscent != null && m.fontBoundingBoxDescent != null){ const a = m.fontBoundingBoxAscent/100, d = m.fontBoundingBoxDescent/100; r = (1-(a+d))/2 + a; }
+  return edBaseCache[key] = r;
+}
 
 // Baca warna kertas di tepi kiri & kanan tiap baris area, lalu isi menurut gradasi + butiran
 function edEraseSample(r){
@@ -4744,6 +4852,34 @@ edG('edEraseBtn').addEventListener('click', ()=>{
 const edFont = e => `${e.ital?'italic ':''}${e.bold?'bold ':''}${e.fs}px ${EDFAM[e.ff]}`;
 const edMeasure = (() => { const c = document.createElement('canvas').getContext('2d'); return (e, t) => { c.font = edFont(e); return c.measureText(t).width; }; })();
 const edStroke = e => Math.max(0, (e.wk||0) + (e.wb||0)) * (e.fs/25) * .5;
+// ketebalan tambahan dalam % ukuran huruf (+ tebal, - tipis); mode "samakan sekitar" memakai wb (1 wb = 2%)
+const edTW = e => e.match ? (e.wb||0)*2 : (e.tw||0);
+// Cari ketebalan (% ukuran huruf) agar kepadatan tinta font kita sama dengan tulisan asli di halaman
+function edCalTW(e){
+  const it = e.itemId != null ? (edS.items[edS.page]||[])[e.itemId] : null; if(!it) return null;
+  const cv = edE.cv, x = Math.max(0, it.x|0), y = Math.max(0, (it.y-it.fs*.95)|0);
+  const w = Math.max(4, Math.min(cv.width-x, Math.ceil(it.w))), h = Math.max(4, Math.min(cv.height-y, Math.ceil(it.fs*1.3)));
+  let d; try{ d = cv.getContext('2d').getImageData(x,y,w,h).data; }catch(_){ return null; }
+  const sm = edSample(it), par = c => [1,3,5].map(i => parseInt(c.slice(i,i+2),16));
+  const bg = par(sm.bg), ink = par(sm.ink), span = Math.abs(ink[0]-bg[0])+Math.abs(ink[1]-bg[1])+Math.abs(ink[2]-bg[2]);
+  if(span < 60) return null;
+  const meas = a => { let t = 0; for(let i=0;i<a.length;i+=4){ const v = (Math.abs(a[i]-bg[0])+Math.abs(a[i+1]-bg[1])+Math.abs(a[i+2]-bg[2]))/span; t += v > 1 ? 1 : v; } return t; };
+  const orig = meas(d) / it.w;
+  const f = { fs:it.fs, ff:e.ff, bold:e.bold, ital:e.ital }, W = edMeasure(f, it.str);
+  if(!(W > 4)) return null;
+  const pad = Math.ceil(it.fs*.3), tc = document.createElement('canvas'); tc.width = Math.ceil(W)+2*pad; tc.height = h;
+  const q = tc.getContext('2d', { willReadFrequently:true });
+  let best = 0, bd = 1e9;
+  for(let t = -3; t <= 8.001; t += .25){
+    q.fillStyle = `rgb(${bg})`; q.fillRect(0,0,tc.width,tc.height);
+    q.font = edFont(f); q.lineJoin = 'round'; q.fillStyle = `rgb(${ink})`; q.fillText(it.str, pad, it.y-y);
+    if(t){ q.strokeStyle = t > 0 ? `rgb(${ink})` : `rgb(${bg})`; q.lineWidth = Math.abs(t)/100*it.fs; q.strokeText(it.str, pad, it.y-y); }
+    const dd = Math.abs(meas(q.getImageData(0,0,tc.width,tc.height).data)/W - orig);
+    if(dd < bd){ bd = dd; best = t; }
+  }
+  return Math.round(best*4)/4;
+}
+const edTWset = (e, v) => { v = Math.max(-3, Math.min(8, Math.round(v*100)/100)); e.tw = v; e.wb = v/2; };
 
 function edRegion(e){
   const m = edMeasure(e, e.text || ' ') * (e.sx || 1), x = e.exp || 0;
@@ -4756,7 +4892,7 @@ function edRegion(e){
 }
 
 // Baca halaman asli di sekitar teks: warna kertas, derau scan, warna tinta, dan kepadatan goresan
-function edAuto(e){
+function edAuto0(e){
   const cv = edE.cv, R = edRegion(e);
   const x = Math.max(0, R.x|0), y = Math.max(0, R.y|0);
   const w = Math.min(cv.width-x, Math.ceil(R.w)), h = Math.min(cv.height-y, Math.ceil(R.h));
@@ -4831,6 +4967,20 @@ function edAuto(e){
       if(edCur() === e) edG('edBl').value = bb;
     }catch(_){}
   }
+}
+
+// Pembungkus: gaya (warna, goresan, blur, latar) dihitung SEKALI dari tulisan asli lalu dikunci,
+// jadi tidak berubah lagi saat teks digeser, diketik, atau diubah ukurannya.
+function edAuto(e){
+  const lockOn = edG('edLock') ? edG('edLock').checked : true;
+  if(lockOn && e.locked && e.bgS) return;
+  const it = (e.itemId != null && !e.add) ? (edS.items[edS.page]||[])[e.itemId] : null;
+  let t = e;
+  if(it && (e.x !== it.x || e.y !== it.y)) t = Object.assign({}, e, { x:it.x, y:it.y });   // cuplik dari posisi ASLI, bukan posisi hasil geseran
+  edAuto0(t);
+  if(t !== e) ['color','bgS','sig','wk','bl'].forEach(k => { if(t[k] !== undefined) e[k] = t[k]; });
+  if(e.bgS) e.locked = true;
+  if(edCur() === e) edG('edBl').value = edBlur(e);
 }
 
 // Ukuran ketajaman tepi (rata-rata gradien terbesar dibanding kontras) — makin kecil = makin buram
@@ -5001,8 +5151,27 @@ function edPartsOf(e, p){
 const edTouch = fn => { const e = edCur(); if(!e) return; fn(e); e.dirty = true; if(e.match) edAuto(e); edDraw(); };
 edG('edMatch').addEventListener('change', ()=> edTouch(e => { e.match = edG('edMatch').checked; }));
 edG('edCover').addEventListener('change', ()=> edTouch(e => { e.cover = edG('edCover').checked; }));
-edG('edReAutoBtn').addEventListener('click', ()=> { edTouch(e => { e.match = true; e.sty = false; e.cc = false; e.blc = false; e.auto = true; }); const e = edCur(); if(e){ edG('edMatch').checked = true; edG('edWb').value = e.wb||0; edG('edBl').value = edBlur(e); edG('edColor').value = e.color; } });
-edG('edWb').addEventListener('input', ()=> edTouch(e => { e.wb = +edG('edWb').value; }));
+edG('edReAutoBtn').addEventListener('click', ()=> { edTouch(e => { e.match = true; e.sty = false; e.cc = false; e.blc = false; e.auto = true; e.locked = false; }); const e = edCur(); if(e){ edG('edMatch').checked = true; edG('edWb').value = e.wb||0; edG('edBl').value = edBlur(e); edG('edColor').value = e.color; } });
+edG('edHomeBtn').addEventListener('click', ()=> edTouch(e => { const it = (e.itemId != null && !e.add) ? (edS.items[edS.page]||[])[e.itemId] : null; if(it){ e.x = it.x; e.y = it.y; } }));
+document.addEventListener('keydown', ev => {
+  if(ev.key.indexOf('Arrow') !== 0) return;
+  const e = edCur(); if(!e || !edE.outer || !edE.outer.offsetParent) return;
+  const tg = ev.target;
+  if(tg && (tg.tagName === 'TEXTAREA' || tg.tagName === 'SELECT' || (tg.tagName === 'INPUT' && tg.type !== 'range' && tg.type !== 'checkbox' && tg.type !== 'button'))) return;
+  const st = (ev.shiftKey ? 10 : 1) / edS.k;
+  edTouch(q => { q.dirty = true; if(ev.key === 'ArrowLeft') q.x -= st; else if(ev.key === 'ArrowRight') q.x += st; else if(ev.key === 'ArrowUp') q.y -= st; else q.y += st; });
+  ev.preventDefault();
+}, true);
+edG('edWb').addEventListener('input', ()=> edTouch(e => { e.wb = +edG('edWb').value; e.tw = e.wb*2; edTwUi(e); }));
+function edTwUi(e){ const v = edTW(e); edG('edTw').value = v; if(document.activeElement !== edG('edTwNum')) edG('edTwNum').value = Math.round(v*100)/100; }
+const edTwApply = v => edTouch(e => { edTWset(e, v); edTwUi(e); });
+edG('edTw').addEventListener('input', ()=> edTwApply(+edG('edTw').value));
+edG('edTwNum').addEventListener('input', ()=>{ const v = parseFloat(edG('edTwNum').value); if(!isNaN(v)) edTwApply(v); });
+edG('edTwNum').addEventListener('blur', ()=>{ const e = edCur(); if(e) edTwUi(e); });
+edG('edTwMinus').addEventListener('click', ()=>{ const e = edCur(); if(e) edTwApply(edTW(e) - .25); });
+edG('edTwPlus').addEventListener('click', ()=>{ const e = edCur(); if(e) edTwApply(edTW(e) + .25); });
+edG('edTwAuto').addEventListener('click', ()=> edTouch(e => { const t = edCalTW(e); if(t == null) return; if(e.match) e.wb = Math.max(-4, Math.min(6, t/2 - (e.wk||0))); else e.tw = t; edTwUi(e); }));
+['edTwPre1','edTwPre2','edTwPre3','edTwPre4'].forEach(id => edG(id).addEventListener('click', ()=> edTwApply(+edG(id).dataset.v)));
 edG('edExp').addEventListener('input', ()=> edTouch(e => { e.exp = +edG('edExp').value * edS.s; }));
 edG('edBl').addEventListener('input', ()=> edTouch(e => { e.bl = +edG('edBl').value; e.blc = true; }));
 edE.txt.addEventListener('input', ()=> edTouch(e => e.text = edE.txt.value));
@@ -5071,6 +5240,13 @@ edE.dl.addEventListener('click', async ()=>{
         if(!fonts[name]){ fonts[name] = await doc.embedFont(StandardFonts[name]); sets[name] = new Set(fonts[name].getCharacterSet()); }
         let txt = '';
         for(const ch of e.text){ if(sets[name].has(ch.codePointAt(0))) txt += ch; else { txt += '?'; bad++; } }
+        const tw = edTW(e);
+        if(tw){
+          const { pushGraphicsState, popGraphicsState, setTextRenderingMode, TextRenderingMode, setLineWidth, setStrokingColor } = PDFLib;
+          page.pushOperators(pushGraphicsState(), setTextRenderingMode(TextRenderingMode.FillAndOutline), setLineWidth(Math.abs(tw)/100*e.fs/sc), setStrokingColor(tw > 0 ? hex(e.color) : hex(e.bg)));
+          page.drawText(txt, { x:cb.x+e.x/sc, y:cb.y+cb.height-e.y/sc, size:e.fs/sc, font:fonts[name], color:hex(e.color) });
+          page.pushOperators(popGraphicsState());
+        } else
         page.drawText(txt, { x:cb.x+e.x/sc, y:cb.y+cb.height-e.y/sc, size:e.fs/sc, font:fonts[name], color:hex(e.color) });
         }
       }
@@ -8875,7 +9051,7 @@ tabs.forEach(t=>{
   if(/[?&]shared=1/.test(location.search)&&window.caches)(async()=>{try{
     const c=await caches.open('shared-pdf'),r=await c.match('shared-file');if(!r)return;
     const blob=await r.blob(),name=decodeURIComponent(r.headers.get('X-Name')||'dokumen.pdf');
-    await c.delete('shared-file');history.replaceState(null,'',location.pathname);
+    await c.delete('shared-file');history.replaceState(history.state,'',location.pathname);
     btn.click();openFile(new File([blob],name,{type:'application/pdf'}));
   }catch(e){}})();
 
@@ -12682,7 +12858,7 @@ tabs.forEach(t=>{
   function close(){
     var st = document.getElementById('verifHideApp'); if(st) st.remove();
     ov.remove();
-    try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){}
+    try{ history.replaceState(history.state, '', location.pathname + location.search); }catch(e){}
   }
   var html = '';
   try{
@@ -12787,6 +12963,165 @@ tabs.forEach(t=>{
     document.body.appendChild(ov);
   }
   document.getElementById('verifCloseBtn').addEventListener('click', close);
+})();
+</script>
+
+<script>
+// ================== BUAT ZIP ==================
+(function(){
+  const $ = id => document.getElementById(id);
+  const btn = $('tabZip'), view = $('viewZip');
+  const tab = { btn, view }; tabs.push(tab);
+  const nav = $('toolTabsNav');
+  btn.addEventListener('click', ()=>{
+    activateTab(tab);
+    nav.classList.add('tt-closed'); $('menuToggleBtn').classList.remove('active');
+    $('toolTitle').textContent = 'Buat ZIP';
+    $('toolDesc').textContent = 'Gabungkan banyak file atau folder menjadi satu arsip ZIP.';
+    document.title = 'Buat ZIP – Alat PDF'; window.scrollTo({top:0});
+  });
+  let items = [];   // { file, path }
+  const fmt = n => n < 1024 ? n + ' B' : n < 1048576 ? (n/1024).toFixed(1) + ' KB' : n < 1073741824 ? (n/1048576).toFixed(1) + ' MB' : (n/1073741824).toFixed(2) + ' GB';
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  function add(list){
+    for(const f of list){
+      const path = f.webkitRelativePath || f.name;
+      if(!items.some(x => x.path === path && x.file.size === f.size && x.file.lastModified === f.lastModified)) items.push({ file:f, path });
+    }
+    render();
+  }
+  function render(){
+    const box = $('zipList'); box.innerHTML = '';
+    items.forEach((it, i) => {
+      const r = document.createElement('div');
+      r.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line,#d0d7e2);border-radius:10px;font-size:13px';
+      r.innerHTML = '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(it.path) + '</span><span style="color:#667;white-space:nowrap">' + fmt(it.file.size) + '</span>';
+      const x = document.createElement('button'); x.type = 'button'; x.className = 'btn ghost'; x.textContent = '✕'; x.title = 'Hapus dari daftar';
+      x.addEventListener('click', () => { items.splice(i, 1); render(); });
+      r.appendChild(x); box.appendChild(r);
+    });
+    const tot = items.reduce((a, b) => a + b.file.size, 0);
+    $('zipTotal').textContent = items.length ? items.length + ' file · total ' + fmt(tot) : '';
+    $('zipBuildBtn').disabled = !items.length;
+  }
+  $('zipFiles').addEventListener('change', e => { add([...e.target.files]); e.target.value = ''; });
+  $('zipFolder').addEventListener('change', e => { add([...e.target.files]); e.target.value = ''; });
+  $('zipClearBtn').addEventListener('click', () => { items = []; render(); });
+  const dz = $('zipDz');
+  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag'); }));
+  dz.addEventListener('drop', e => add([...e.dataTransfer.files]));
+
+  $('zipBuildBtn').addEventListener('click', async () => {
+    clearError();
+    if(!items.length){ showError('Tambahkan minimal satu file dulu.'); return; }
+    if(typeof JSZip === 'undefined'){ showError('Pustaka ZIP belum termuat. Periksa internet lalu muat ulang halaman.'); return; }
+    const b = $('zipBuildBtn'); b.disabled = true;
+    try{
+      const zip = new JSZip(), used = new Set();
+      for(const it of items){
+        let path = it.path, n = 1;
+        while(used.has(path.toLowerCase())){
+          n++; const dot = it.path.lastIndexOf('.'), cut = dot > it.path.lastIndexOf('/') + 1 ? dot : it.path.length;
+          path = it.path.slice(0, cut) + ' (' + n + ')' + it.path.slice(cut);
+        }
+        used.add(path.toLowerCase());
+        zip.file(path, it.file, { binary:true, date:new Date(it.file.lastModified || Date.now()) });
+      }
+      const lv = +$('zipLevel').value;
+      setStatus('Membuat ZIP...');
+      const blob = await zip.generateAsync({ type:'blob', compression: lv ? 'DEFLATE' : 'STORE', compressionOptions: { level: lv || 6 } }, m => setStatus('Membuat ZIP... ' + Math.round(m.percent) + '%'));
+      const name = ($('zipName').value.trim().replace(/[\\/:*?"<>|]+/g, '_').replace(/\.zip$/i, '') || 'arsip') + '.zip';
+      const url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = name; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      const tot = items.reduce((x, y) => x + y.file.size, 0);
+      setStatus('Selesai! ' + name + ' (' + fmt(blob.size) + ') dari ' + items.length + ' file (' + fmt(tot) + ').');
+    }catch(err){
+      console.error(err);
+      showError('Gagal membuat ZIP. Kalau file sangat besar, coba bagi menjadi beberapa arsip.');
+      setStatus('');
+    }finally{ b.disabled = !items.length; }
+  });
+  render();
+})();
+</script>
+
+<script>
+/* ===== Tombol Back: dari alat → beranda; dari beranda → tanya dulu sebelum keluar ===== */
+(function(){
+  var home = tabs[0], orig = activateTab;
+  var cur = 1;            // 0 = penjaga (di bawah beranda), 1 = beranda, 2 = sedang di dalam alat
+  var internal = false;   // true bila history.back() dipicu kode ini sendiri
+  var dlg = null;
+  var nav = document.getElementById('toolTabsNav'), tog = document.getElementById('menuToggleBtn');
+  function st(n){ return { nav:n }; }
+  function isHome(){ return home.view.style.display !== 'none'; }
+  function isOpen(){ return !nav.classList.contains('tt-closed'); }
+  function closeDrawer(){ nav.classList.add('tt-closed'); if(tog) tog.classList.remove('active'); }
+
+  try{
+    if(history.state && history.state.nav != null){ history.replaceState(st(1), ''); }
+    else { history.replaceState(st(0), ''); history.pushState(st(1), ''); }
+  }catch(e){}
+
+  // Setiap pindah alat dicatat di riwayat, supaya tombol back bisa kembali ke beranda
+  activateTab = function(a){
+    orig(a);
+    try{
+      if(a === home){
+        if(cur === 2){ internal = true; history.back(); }
+      }else if(cur === 1){ history.pushState(st(2), ''); cur = 2; }
+      else if(cur === 2){ history.replaceState(st(2), ''); }
+    }catch(e){}
+  };
+
+  function hideDlg(){ if(dlg){ dlg.remove(); dlg = null; } document.removeEventListener('keydown', onKey, true); }
+  function stay(){ hideDlg(); try{ history.pushState(st(1), ''); }catch(e){} cur = 1; }
+  function leave(){ hideDlg(); try{ history.back(); }catch(e){} }
+  function onKey(ev){ if(ev.key === 'Escape'){ ev.preventDefault(); stay(); } }
+  function confirmExit(){
+    if(dlg) return;
+    dlg = document.createElement('div');
+    dlg.setAttribute('role', 'dialog'); dlg.setAttribute('aria-modal', 'true');
+    dlg.style.cssText = 'position:fixed;inset:0;z-index:2147483001;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(15,23,42,.55);font-family:inherit';
+    var box = document.createElement('div');
+    box.style.cssText = 'background:#fff;color:#1b2433;border-radius:16px;padding:22px 20px 16px;max-width:320px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.3)';
+    box.innerHTML = '<div style="font-size:17px;font-weight:700;margin-bottom:6px">Keluar dari aplikasi?</div>'
+      + '<div style="font-size:14px;line-height:1.5;color:#52607a;margin-bottom:16px">Pekerjaan yang belum diunduh akan hilang kalau kamu keluar.</div>';
+    var row = document.createElement('div'); row.style.cssText = 'display:flex;gap:10px;justify-content:flex-end';
+    function btn(t, bg, fg, bd, fn){ var b = document.createElement('button'); b.type = 'button'; b.textContent = t; b.style.cssText = 'font:inherit;font-weight:600;font-size:14px;padding:10px 16px;border-radius:10px;cursor:pointer;border:1px solid ' + bd + ';background:' + bg + ';color:' + fg; b.addEventListener('click', fn); return b; }
+    var bStay = btn('Tetap di sini', '#1e3350', '#fff', '#1e3350', stay);
+    row.append(btn('Keluar', '#fff', '#b42318', '#d0d5dd', leave), bStay);
+    box.appendChild(row); dlg.appendChild(box);
+    dlg.addEventListener('click', function(ev){ if(ev.target === dlg) stay(); });
+    document.body.appendChild(dlg);
+    document.addEventListener('keydown', onKey, true);
+    bStay.focus();
+  }
+
+  addEventListener('popstate', function(e){
+    var n = e.state && e.state.nav;
+    if(n == null) return;                       // entri milik penampil/panel lain: biarkan mereka yang urus
+    if(n === cur){ internal = false; return; }  // sekadar menutup panel (mis. pembaca PDF), tetap di tempat
+    cur = n;
+    if(n === 2){                                // tombol maju ke entri alat padahal sedang di beranda
+      if(isHome()){ try{ history.replaceState(st(1), ''); }catch(_){} cur = 1; }
+      return;
+    }
+    if(n === 1){
+      if(internal){ internal = false; return; }
+      if(!isHome()){
+        if(isOpen()){ closeDrawer(); try{ history.pushState(st(2), ''); }catch(_){} cur = 2; return; }   // back pertama menutup menu samping
+        home.btn.click(); closeDrawer(); window.scrollTo(0, 0);   // klik tombol Beranda supaya judul halaman ikut kembali
+      }
+      return;
+    }
+    if(n === 0){
+      if(isOpen()){ closeDrawer(); try{ history.pushState(st(1), ''); }catch(_){} cur = 1; return; }
+      confirmExit();
+    }
+  });
 })();
 </script>
 
