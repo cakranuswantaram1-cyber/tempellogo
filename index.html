@@ -23,6 +23,7 @@ if(/^#verif=/.test(location.hash)){var vst=document.createElement('style');vst.i
 <link rel="preconnect" href="https://cdnjs.cloudflare.com">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/0.0.0/placeholder.css" rel="stylesheet" onerror="this.remove()">
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Caveat&family=Dancing+Script&family=Homemade+Apple&family=Reenie+Beanie&family=Shadows+Into+Light&family=Indie+Flower&family=Patrick+Hand&family=Kalam&family=Nanum+Pen+Script&family=Covered+By+Your+Grace&family=Rock+Salt&family=Permanent+Marker&family=Gochi+Hand&family=Satisfy&family=Sacramento&family=Marck+Script&family=Yellowtail&family=La+Belle+Aurore&family=Zeyada&family=Give+You+Glory&family=Gloria+Hallelujah&family=Handlee&family=Architects+Daughter&family=Cedarville+Cursive&family=Over+the+Rainbow&family=Nothing+You+Could+Do&family=Just+Another+Hand&family=Waiting+for+the+Sunrise&family=Schoolbell&family=Amatic+SC&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
   :root{
@@ -1625,7 +1626,7 @@ if(/^#verif=/.test(location.hash)){var vst=document.createElement('style');vst.i
         <div class="row">
           <span class="lbl">Ukuran</span><input type="number" id="edSize" min="4" max="200" step="0.5" style="width:74px">
           <span class="lbl">Warna</span><input type="color" id="edColor" value="#000000">
-          <span class="lbl">Font</span><select id="edFont"><option value="h">Sans (Arial/Helvetica)</option><option value="t">Serif (Times)</option><option value="c">Mono (Courier)</option></select>
+          <span class="lbl">Font</span><select id="edFont"><option value="h">Sans (Arial/Helvetica)</option><option value="t">Serif (Times)</option><option value="c">Mono (Courier)</option><optgroup label="Tulisan tangan"><option value="cav">Caveat</option><option value="dan">Dancing Script</option><option value="hom">Homemade Apple</option><option value="ree">Reenie Beanie</option><option value="sha">Shadows Into Light</option><option value="ind">Indie Flower</option><option value="pat">Patrick Hand</option><option value="kal">Kalam</option><option value="nan">Nanum Pen Script</option><option value="cov">Covered By Your Grace</option><option value="roc">Rock Salt</option><option value="per">Permanent Marker</option><option value="goc">Gochi Hand</option><option value="sat">Satisfy</option><option value="sac">Sacramento</option><option value="mar">Marck Script</option><option value="yel">Yellowtail</option><option value="lab">La Belle Aurore</option><option value="zey">Zeyada</option><option value="giv">Give You Glory</option><option value="glo">Gloria Hallelujah</option><option value="han">Handlee</option><option value="arc">Architects Daughter</option><option value="ced">Cedarville Cursive</option><option value="ove">Over the Rainbow</option><option value="not">Nothing You Could Do</option><option value="jus">Just Another Hand</option><option value="wai">Waiting for the Sunrise</option><option value="sch">Schoolbell</option><option value="ami">Amatic SC</option></optgroup></select>
           <button class="btn ghost" id="edBold" type="button" title="Tebal"><b>B</b></button>
           <button class="btn ghost" id="edItal" type="button" title="Miring"><i>I</i></button>
         </div>
@@ -1710,8 +1711,10 @@ if(/^#verif=/.test(location.hash)){var vst=document.createElement('style');vst.i
         <span class="note" id="edNote"></span>
         <button class="btn ghost" id="edChangeBtn" type="button">Ganti PDF</button>
         <button class="btn gold" id="downloadEditBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m-4-4 4 4 4-4M5 20h14"/></svg>Unduh PDF hasil edit</button>
+        <button class="btn ghost" id="downloadEditJpgBtn" type="button" title="Simpan halaman yang sedang dibuka sebagai gambar JPG">Unduh JPG (halaman ini)</button>
+        <button class="btn ghost" id="downloadEditJpgAllBtn" type="button" title="Simpan semua halaman sebagai JPG">JPG semua halaman</button>
       </div>
-      <p class="note" style="font-size:11.5px;color:var(--ink-soft);margin:10px 0 0;">Teks lama ditutup dengan warna latar lalu diganti teks baru (font standar Helvetica/Times/Courier). Jangan andalkan ini untuk menyembunyikan data rahasia: teks asli masih ada di dalam struktur file.</p>
+      <p class="note" style="font-size:11.5px;color:var(--ink-soft);margin:10px 0 0;">Teks lama ditutup dengan warna latar lalu diganti teks baru (font standar Helvetica/Times/Courier, atau font tulisan tangan yang dimasukkan sebagai gambar). Jangan andalkan ini untuk menyembunyikan data rahasia: teks asli masih ada di dalam struktur file.</p>
     </div>
 
   </div><!-- /viewEdit -->
@@ -4477,6 +4480,11 @@ const edE = {
 };
 edE.outer = edE.stage.parentElement;
 const EDFAM = { h:'Helvetica,Arial,sans-serif', t:'"Times New Roman",Times,serif', c:'"Courier New",monospace' };
+const EDHW = {cav:'"Caveat"',dan:'"Dancing Script"',hom:'"Homemade Apple"',ree:'"Reenie Beanie"',sha:'"Shadows Into Light"',ind:'"Indie Flower"',pat:'"Patrick Hand"',kal:'"Kalam"',nan:'"Nanum Pen Script"',cov:'"Covered By Your Grace"',roc:'"Rock Salt"',per:'"Permanent Marker"',goc:'"Gochi Hand"',sat:'"Satisfy"',sac:'"Sacramento"',mar:'"Marck Script"',yel:'"Yellowtail"',lab:'"La Belle Aurore"',zey:'"Zeyada"',giv:'"Give You Glory"',glo:'"Gloria Hallelujah"',han:'"Handlee"',arc:'"Architects Daughter"',ced:'"Cedarville Cursive"',ove:'"Over the Rainbow"',not:'"Nothing You Could Do"',jus:'"Just Another Hand"',wai:'"Waiting for the Sunrise"',sch:'"Schoolbell"',ami:'"Amatic SC"'};
+const EDHWN = {cav:'Caveat',dan:'Dancing Script',hom:'Homemade Apple',ree:'Reenie Beanie',sha:'Shadows Into Light',ind:'Indie Flower',pat:'Patrick Hand',kal:'Kalam',nan:'Nanum Pen Script',cov:'Covered By Your Grace',roc:'Rock Salt',per:'Permanent Marker',goc:'Gochi Hand',sat:'Satisfy',sac:'Sacramento',mar:'Marck Script',yel:'Yellowtail',lab:'La Belle Aurore',zey:'Zeyada',giv:'Give You Glory',glo:'Gloria Hallelujah',han:'Handlee',arc:'Architects Daughter',ced:'Cedarville Cursive',ove:'Over the Rainbow',not:'Nothing You Could Do',jus:'Just Another Hand',wai:'Waiting for the Sunrise',sch:'Schoolbell',ami:'Amatic SC'};
+for(const k in EDHW) EDFAM[k] = EDHW[k]+',cursive';
+const edHwLoad = ff => (EDHW[ff] && document.fonts) ? document.fonts.load('40px '+EDHW[ff], 'AaBbHg Ééñ').catch(()=>{}) : Promise.resolve();
+
 const EDFN = { h:'Helvetica', t:'TimesRoman', c:'Courier' };
 
 edE.inp.addEventListener('change', e=>{ const f=e.target.files[0]; if(f) edLoad(f); });
@@ -5189,6 +5197,12 @@ edE.size.addEventListener('input', ()=> edTouch(e => e.fs = Math.max(1, +edE.siz
 edE.color.addEventListener('input', ()=> edTouch(e => { e.color = edE.color.value; e.cc = true; }));
 edE.bold.addEventListener('click', ()=> edTouch(e => { e.bold = !e.bold; edE.bold.classList.toggle('on', e.bold); }));
 edG('edFont').addEventListener('change', ()=> edTouch(e => e.ff = edG('edFont').value));
+edG('edFont').addEventListener('change', async ()=>{
+  const ff = edG('edFont').value; if(!EDHW[ff]) return;
+  await edHwLoad(ff);
+  for(const k in edBaseCache) delete edBaseCache[k];
+  edDraw();
+});
 edG('edItal').addEventListener('click', ()=> edTouch(e => { e.ital = !e.ital; edG('edItal').classList.toggle('on', e.ital); }));
 edG('edDoneBtn').addEventListener('click', ()=> edSelect(null));
 edG('edMinBtn').addEventListener('click', function(){
@@ -5212,10 +5226,13 @@ edG('edChangeBtn').addEventListener('click', ()=>{
   edE.card.style.display = 'none'; edE.up.style.display = ''; edE.inp.value = '';
 });
 
+for(const [bid, all] of [['downloadEditJpgBtn', false], ['downloadEditJpgAllBtn', true]]){
+  edG(bid).addEventListener('click', ()=>{ edS.wantJpg = true; edS.jpgAll = all; edE.dl.click(); });
+}
 edE.dl.addEventListener('click', async ()=>{
   clearError();
   const pages = [...new Set([...Object.keys(edS.edits), ...Object.keys(edS.erase)])].filter(p => (edS.edits[p]||[]).some(e => e.add || e.dirty) || (edS.erase[p]||[]).some(r => r.L));
-  if(!pages.length){ showError('Belum ada teks yang diubah. Ketuk teks pada halaman untuk mulai mengedit.'); return; }
+  if(!pages.length){ edS.wantJpg = false; showError('Belum ada teks yang diubah. Ketuk teks pada halaman untuk mulai mengedit.'); return; }
   edE.dl.disabled = true; setStatus('Menerapkan perubahan teks...');
   try{
     const { PDFDocument, StandardFonts, rgb } = PDFLib;
@@ -5245,6 +5262,17 @@ edE.dl.addEventListener('click', async ()=>{
         }
         if(e.cov) page.drawRectangle({ x:cb.x+e.cov.x/sc, y:cb.y+cb.height-(e.cov.y+e.cov.h)/sc, width:e.cov.w/sc, height:e.cov.h/sc, color:hex(e.bg), borderWidth:0 });
         if(!e.text) continue;
+        if(EDHW[e.ff]){
+          await edHwLoad(e.ff);
+          const K = 3, pad = e.fs*.5, W = Math.ceil(edMeasure(e, e.text) + pad*2), Hh = Math.ceil(e.fs*2 + pad);
+          const hc = document.createElement('canvas'); hc.width = W*K; hc.height = Hh*K;
+          const q = hc.getContext('2d'); q.scale(K,K); q.font = edFont(e); q.fillStyle = q.strokeStyle = e.color; q.lineJoin = 'round';
+          const by = e.fs*1.3; q.fillText(e.text, pad, by);
+          const twh = edTW(e); if(twh > 0){ q.lineWidth = twh/100*e.fs; q.strokeText(e.text, pad, by); }
+          const hp = await doc.embedPng(hc.toDataURL('image/png'));
+          page.drawImage(hp, { x:cb.x+(e.x-pad)/sc, y:cb.y+cb.height-(e.y+(Hh-by))/sc, width:W/sc, height:Hh/sc });
+          continue;
+        }
         const name = EDFN[e.ff] + (e.bold ? 'Bold' : '') + (e.ital ? (e.ff === 't' ? 'Italic' : 'Oblique') : '');
         if(!fonts[name]){ fonts[name] = await doc.embedFont(StandardFonts[name]); sets[name] = new Set(fonts[name].getCharacterSet()); }
         let txt = '';
@@ -5261,6 +5289,26 @@ edE.dl.addEventListener('click', async ()=>{
       }
     }
     const out = await doc.save();
+    if(edS.wantJpg){
+      edS.wantJpg = false;
+      const pd = await pdfjsLib.getDocument({ data: out.slice(0) }).promise, all = edS.jpgAll;
+      const list = all ? Array.from({length:pd.numPages}, (_,i)=>i+1) : [edS.page];
+      for(const pn of list){
+        const pg = await pd.getPage(pn), vp0 = pg.getViewport({ scale:1 }), sc2 = Math.min(3, 3000/Math.max(vp0.width, vp0.height)) ;
+        const vp2 = pg.getViewport({ scale: Math.max(1, sc2) }), cv2 = document.createElement('canvas');
+        cv2.width = Math.round(vp2.width); cv2.height = Math.round(vp2.height);
+        const x2 = cv2.getContext('2d'); x2.fillStyle = '#fff'; x2.fillRect(0,0,cv2.width,cv2.height);
+        await pg.render({ canvasContext:x2, viewport:vp2 }).promise;
+        const bl = await new Promise(r => cv2.toBlob(r, 'image/jpeg', .93));
+        const u2 = URL.createObjectURL(bl), a2 = document.createElement('a');
+        a2.href = u2; a2.download = 'foto-diedit' + (list.length>1 ? '-'+pn : '') + '.jpg';
+        document.body.appendChild(a2); a2.click(); document.body.removeChild(a2);
+        setTimeout(()=>URL.revokeObjectURL(u2), 4000);
+        await new Promise(r => setTimeout(r, 250));
+      }
+      setStatus(`Selesai! ${n} perubahan diterapkan, disimpan sebagai JPG.`);
+      return;
+    }
     const url = URL.createObjectURL(new Blob([out], { type:'application/pdf' }));
     const a = document.createElement('a');
     a.href = url; a.download = 'pdf-diedit.pdf';
@@ -5273,6 +5321,7 @@ edE.dl.addEventListener('click', async ()=>{
     showError('Gagal membuat PDF hasil edit. Coba lagi.');
     setStatus('');
   }finally{
+    edS.wantJpg = false;
     edE.dl.disabled = false;
   }
 });
@@ -5285,7 +5334,7 @@ const espE = {
 };
 const espS = { clip: null, ov: null, box: null };
 const ESP_TEST = 'Desa Purwawunangun Kecamatan Cirebon Blok RT 002';
-const ESP_NAME = { h: 'Sans', t: 'Serif', c: 'Mono' };
+const ESP_NAME = Object.assign({ h: 'Sans', t: 'Serif', c: 'Mono' }, EDHWN);
 const ESP_WR = 1, ESP_WS = 0.3, ESP_BK = 2.2, ESP_BT = 0.62;   // bobot penanda bentuk & koreksi blur (hasil kalibrasi)
 
 // proporsi tinggi huruf besar (H) dan huruf kecil (x) terhadap ukuran font, dibaca dari font yang dipakai kanvas
